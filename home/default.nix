@@ -2,6 +2,7 @@
 {
   imports = [
     ./shell
+    ./nvim
   ];
   home = {
     stateVersion = "23.05";
@@ -20,6 +21,7 @@
       nodePackages.yarn
       nodePackages.typescript
       nodePackages.typescript-language-server
+      delta
     ];
   };
 
@@ -39,6 +41,13 @@
       enable = true;
       extraConfig = {
         credential.helper = "osxkeychain";
+      };
+    };
+    bat = {
+      enable = true;
+      config = {
+        theme = "Nord";
+        color = "always";
       };
     };
   };
