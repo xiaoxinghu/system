@@ -4,22 +4,23 @@ if not status_ok then
 end
 
 configs.setup({
-	ensure_installed = {
-		"javascript",
-		"jsdoc",
-		"json",
-		"typescript",
-		"astro",
-		"tsx",
-		"html",
-		"lua",
-		"hcl",
-		"swift",
-		"markdown",
-		"markdown_inline",
-	},
+	-- I thinks these are handled in nix
+	-- ensure_installed = {
+	-- 	"javascript",
+	-- 	"jsdoc",
+	-- 	"json",
+	-- 	"typescript",
+	-- 	"astro",
+	-- 	"tsx",
+	-- 	"html",
+	-- 	"lua",
+	-- 	"hcl",
+	-- 	"swift",
+	-- 	"markdown",
+	-- 	"markdown_inline",
+	-- },
 	sync_install = false,
-	auto_install = true,
+	-- auto_install = true,
 	highlight = {
 		enable = true,
 		-- Setting this to true will run `:h syntax` and tree-sitter at the same time.

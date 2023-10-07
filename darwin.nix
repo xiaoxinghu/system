@@ -9,7 +9,6 @@
   # };
 
   environment.systemPackages = with pkgs; [
-    neovim
     emacs29-macport
   ];
   programs.zsh.enable = true;

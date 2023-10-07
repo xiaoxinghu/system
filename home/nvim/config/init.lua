@@ -1,13 +1,15 @@
-require("x.basics")
-require("x.plugins")
-require("x.color")
-require("x.keymaps")
-require("x.lsp")
+local map = vim.api.nvim_set_keymap
+local options = { noremap = true, silent = true }
+map("n", "gp", "<cmd>Telescope find_files<cr>", options)
 
--- user
-require("user.notes")
+-- theme
+vim.cmd([[colorscheme nightfox]])
 
--- code
-require("user.dap")
-require("user.lang.c")
-require("user.lang.rust")
+require("lualine").setup({
+	options = {
+		theme = "nightfox",
+	},
+})
+
+-- comment
+require("Comment").setup()

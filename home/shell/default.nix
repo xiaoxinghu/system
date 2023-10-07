@@ -17,8 +17,6 @@ let
     lt = "eza --tree --level=2"; # tree
     # --- vim ---
     v = "nvim";
-    vi = "nvim";
-    vim = "nvim";
     vv = "nvim $(fzf)";
   };
 in {
