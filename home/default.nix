@@ -3,6 +3,7 @@
   imports = [
     ./shell
     ./nvim
+    ./tmux
   ];
   home = {
     stateVersion = "23.05";
@@ -32,7 +33,6 @@
     zoxide.enable = true;
     lazygit.enable = true;
     ripgrep.enable = true;
-    tmux.enable = true;
     direnv = {
       enable = true;
       nix-direnv.enable = true;
@@ -41,6 +41,13 @@
       enable = true;
       extraConfig = {
         credential.helper = "osxkeychain";
+      };
+    };
+    gh = {
+      enable = true;
+      gitCredentialHelper.enable = true;
+      settings = {
+        git_protocol = "ssh";
       };
     };
     bat = {

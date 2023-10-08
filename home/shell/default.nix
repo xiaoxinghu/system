@@ -18,6 +18,8 @@ let
     # --- vim ---
     v = "nvim";
     vv = "nvim $(fzf)";
+    ta = "tmux a";
+    g = "lazygit";
   };
 in {
   programs.zsh = {
@@ -28,6 +30,7 @@ in {
     localVariables = {
       TERM = "xterm-256color";
       EDITOR = "nvim";
+      PAGER = "bat";
     };
     shellAliases = aliases;
 
