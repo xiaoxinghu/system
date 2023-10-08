@@ -4,7 +4,7 @@
   nix.package = pkgs.nixFlakes;
 
   fonts = {
-    enableFontDir = true;
+    fontDir.enable = true;
     fonts = with pkgs; [
       jetbrains-mono
       fira-code
