@@ -4,6 +4,7 @@
     ./shell
     ./nvim
     ./tmux
+    ./emacs
   ];
   home = {
     stateVersion = "23.05";

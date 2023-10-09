@@ -1,3 +1,39 @@
 * nix config
 
 What am I doing with my life? 💆
+
+* Projects
+
+[[https://arctiq.ca/post/simplify-development-with-the-nix-ecosystem][reference article]]
+
+Create nix shell file =shell.nix=.
+
+#+begin_src nix
+# shell.nix
+{ pkgs ? import <nixpkgs> {
+  config = {
+    permittedinsecurepackages = [
+      "nodejs-16.20.2"
+    ];
+  };
+}}:
+
+pkgs.mkshell {
+  buildinputs = with pkgs; [
+    nodejs-16_x
+  ];
+  shellhook = ''
+    echo "node version: $(node --version)"
+  '';
+}
+#+end_src
+
+#+begin_src sh
+echo 'use nix' > .envrc
+#+end_src
+
+
+* Useful Links
+
+- [[https://nix-community.github.io/home-manager/options.html][home-manager appendix A]]
+- [[https://nixos.org/manual/nixos/stable/index.html#module-services-emacs][nixos manual on emacs setup]]
