@@ -38,19 +38,8 @@
         system = "aarch64-darwin";
         modules = [
           { nixpkgs.overlays = [ emacs-overlay.overlay ]; }
-          ./darwin.nix
-          {
-            users.users.xiaoxing.home = "/Users/xiaoxing";
-          }
           home-manager.darwinModules.home-manager
-          {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.xiaoxing = import ./home/default.nix;
-
-            # Optionally, use home-manager.extraSpecialArgs to pass
-            # arguments to home.nix
-          }
+          ./m1
         ];
       };
     };

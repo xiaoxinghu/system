@@ -77,6 +77,11 @@
 (setq auth-source-debug t)
 #+end_src
 
+** COMMENT server
+#+begin_src emacs-lisp
+(server-start)
+#+end_src
+
 * UI
 
 ** simple and clean

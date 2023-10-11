@@ -20,6 +20,7 @@ let
     vv = "nvim $(fzf)";
     ta = "tmux a";
     g = "lazygit";
+    e = "emacsclient";
   };
 in {
   programs.zsh = {
