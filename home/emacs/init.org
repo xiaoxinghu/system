@@ -669,6 +669,7 @@ https://github.com/xenodium/dwim-shell-command
 
 #+begin_src emacs-lisp
 (use-package bookmark+
+  :ensure nil
   ;; :straight (:host github :repo "emacsmirror/bookmark-plus")
   :general
   ("M-s-b" 'consult-bookmark))

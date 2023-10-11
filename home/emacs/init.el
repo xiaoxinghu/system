@@ -568,6 +568,7 @@
   (pdf-tools-install))
 
 (use-package bookmark+
+  :ensure nil
   ;; :straight (:host github :repo "emacsmirror/bookmark-plus")
   :general
   ("M-s-b" 'consult-bookmark))

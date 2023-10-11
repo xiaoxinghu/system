@@ -5,25 +5,24 @@
     ./nvim
     ./tmux
     ./emacs
+    ./hammerspoon
   ];
   home = {
     stateVersion = "23.05";
     packages = with pkgs; [
       htop
-      binutils
       jq
       fd
       tree
-      ffmpeg
-      gnumake
       eza
       fzf
+      delta
       nodejs_20
       nodePackages.pnpm
       nodePackages.yarn
       nodePackages.typescript
       nodePackages.typescript-language-server
-      delta
+      rust-analyzer
     ];
   };
 
