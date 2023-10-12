@@ -8,7 +8,6 @@ end)
 hs.hotkey.bind({ "cmd", "ctrl", "alt", "shift" }, "e", function()
 	-- hs.application.launchOrFocus("/Users/xiaoxing/Applications/Home Manager Apps/Emacs.app")
 	hs.application.launchOrFocus("/Applications/Nix Apps/Emacs.app")
-	-- hs.execute("emacsclient --no-wait", true)
 end)
 
 hs.hotkey.bind({ "cmd", "ctrl", "alt", "shift" }, "b", function()

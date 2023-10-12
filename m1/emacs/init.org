@@ -640,6 +640,7 @@ Keybindings
 ;; (use-package treemacs-magit
 ;;   :after (treemacs magit))
 #+end_src
+
 ** shell
 
 https://github.com/xenodium/dwim-shell-command

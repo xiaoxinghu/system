@@ -1,5 +1,32 @@
 { config, pkgs, lib, ... }:
 {
+  # imports = [./plugins];
+
+  lib.vimUtils = rec {
+    # For plugins configured with lua
+    wrapLuaConfig = luaConfig: ''
+      lua<<EOF
+      ${luaConfig}
+      EOF
+    '';
+    readVimConfigRaw = file:
+      if (lib.strings.hasSuffix ".lua" (builtins.toString file))
+      then wrapLuaConfig (builtins.readFile file)
+      else builtins.readFile file;
+    readVimConfig = file: ''
+      if !exists('g:vscode')
+        ${readVimConfigRaw file}
+      endif
+    '';
+    pluginWithCfg = {
+      plugin,
+      file,
+    }: {
+      inherit plugin;
+      config = readVimConfig file;
+    };
+  };
+
   programs.neovim = {
     enable = true;
     viAlias = true;
@@ -7,7 +34,11 @@
     vimdiffAlias = true;
     # TODO: move plugins over from ./config/lua/x/plugins.lua
     plugins = with pkgs.vimPlugins; [
-      plenary-nvim
+      telescope-nvim
+      telescope-fzf-native-nvim
+      telescope-file-browser-nvim
+      telescope-live-grep-args-nvim
+      telescope-zoxide
       (nvim-treesitter.withPlugins (p: [
         p.c
         p.javascript
@@ -18,27 +49,31 @@
         p.html
         p.lua
       ]))
-      telescope-nvim
-      telescope-fzf-native-nvim
-      telescope-file-browser-nvim
-      telescope-live-grep-args-nvim
-      telescope-zoxide
       popup-nvim
       nvim-surround
       comment-nvim
       nightfox-nvim
       lualine-nvim
+      bufferline-nvim
+      # auto completion
+      nvim-cmp
+      cmp-buffer
+      cmp-path
+      cmp-cmdline
+      cmp-nvim-lsp
+      cmp-nvim-lua
+      luasnip
+      cmp_luasnip
+
+      editorconfig-nvim
     ];
-    # extraLuaConfig = /* lua */ ''
-    #   local map = vim.api.nvim_set_keymap
-    #   local options = { noremap = true, silent = true }
-    #   map("n", "gp", "<cmd>Telescope find_files<cr>", options)
-    #   vim.cmd([[colorscheme nightfox]])
-    # '';
     extraPackages = with pkgs; [
       ripgrep
       fzf
     ];
+    extraLuaConfig = ''
+      ${builtins.readFile ./config/init.lua}
+    '';
   };
 
   xdg.configFile.nvim = {

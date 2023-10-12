@@ -34,6 +34,9 @@ in {
       PAGER = "bat";
     };
     shellAliases = aliases;
+    initExtra = ''
+      PATH=$HOME/.local/bin:$PATH
+    '';
 
     plugins = [
       {
