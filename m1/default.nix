@@ -29,12 +29,14 @@ in {
     binutils
     gnupg
     gnutls
+    coreutils
     gnumake
     imagemagick
     pandoc
     lua
     ffmpeg
     myEmacs
+    (aspellWithDicts (d: [ d.en ]))
   ];
 
   programs.zsh.enable = true;

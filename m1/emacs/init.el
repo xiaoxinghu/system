@@ -507,60 +507,60 @@
   :config
   (setq projectile-completion-system 'default))
 
-  (use-package magit
-    :commands (magit-status magit-blame)
-    :init
-    ;; Have magit-status go full screen and quit to previous
-    ;; configuration.  Taken from
-    ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
-    ;; and http://irreal.org/blog/?p=2253
-    (defadvice magit-status (around magit-fullscreen activate)
-      (window-configuration-to-register :magit-fullscreen)
-      ad-do-it
-      (delete-other-windows))
-    (defadvice magit-quit-window (after magit-restore-screen activate)
-      (jump-to-register :magit-fullscreen))
-    :custom
-    (magit-diff-refine-hunk 'all)
-    :config
-    ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
-    ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
-    (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
-    (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
-    (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
-    (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
-    )
+(use-package magit
+  :commands (magit-status magit-blame)
+  :init
+  ;; Have magit-status go full screen and quit to previous
+  ;; configuration.  Taken from
+  ;; http://whattheemacsd.com/setup-magit.el-01.html#comment-748135498
+  ;; and http://irreal.org/blog/?p=2253
+  (defadvice magit-status (around magit-fullscreen activate)
+    (window-configuration-to-register :magit-fullscreen)
+    ad-do-it
+    (delete-other-windows))
+  (defadvice magit-quit-window (after magit-restore-screen activate)
+    (jump-to-register :magit-fullscreen))
+  :custom
+  (magit-diff-refine-hunk 'all)
+  :config
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
+  ;; (remove-hook 'magit-status-sections-hook 'magit-insert-status-headers)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
+  )
 
-  (use-package git-gutter
-    :after magit
-    :init
-    (global-git-gutter-mode +1))
+(use-package git-gutter
+  :after magit
+  :init
+  (global-git-gutter-mode +1))
 
-  (use-package git-gutter-fringe
-    :after git-gutter
-    :config
-    (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
-    (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
-    (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+(use-package git-gutter-fringe
+  :after git-gutter
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
-  ;; it's slow: https://github.com/dandavison/magit-delta/issues/9
-  ;; (use-package magit-delta
-  ;;   :after magit
-  ;;   :hook (magit-mode . magit-delta-mode))
+;; it's slow: https://github.com/dandavison/magit-delta/issues/9
+;; (use-package magit-delta
+;;   :after magit
+;;   :hook (magit-mode . magit-delta-mode))
 
-  (use-package browse-at-remote
-    :after magit)
+(use-package browse-at-remote
+  :after magit)
 
-  (use-package forge
-    :after magit)
+(use-package forge
+  :after magit)
 
-  (use-package consult-gh
-    :after consult
-    :config
-    (setq consult-gh-default-orgs-list '("xiaoxinghu" "orgapp" "nib-group"))
-    (setq consult-gh-default-clone-directory "~/Projects"))
+(use-package consult-gh
+  :after consult
+  :config
+  (setq consult-gh-default-orgs-list '("xiaoxinghu" "orgapp" "nib-group"))
+  (setq consult-gh-default-clone-directory "~/Projects"))
 
-  ;; (setq magit-refresh-status-buffer nil)
+;; (setq magit-refresh-status-buffer nil)
 
 (defhydra hydra-git (:hint nil)
   "git"
@@ -651,6 +651,51 @@
   ;; :straight (:host github :repo "emacsmirror/bookmark-plus")
   :general
   ("M-s-b" 'consult-bookmark))
+
+(setq
+ ispell-dictionary "en_US"
+ ispell-personal-dictionary "~/.aspell.en.pws")
+
+(use-package spell-fu)
+
+(defhydra hydra-spell (:hint nil)
+  "spell"
+  ("j" spell-fu-goto-next-error "next")
+  ("k" spell-fu-goto-previous-error "prev")
+  ("s" spell-fu-word-add "add")
+  ("RET" ispell-word "correct")
+  ("q" nil "quit"))
+;; (leader! "s" '(hydra-spell/body :which-key "spell"))
+
+(add-hook 'org-mode-hook
+	  (lambda ()
+	    (setq spell-fu-faces-exclude
+		  '(org-block
+		    org-block-begin-line
+		    org-block-end-line
+		    org-cite
+		    org-cite-key
+		    org-code
+		    org-date
+		    org-footnote
+		    org-formula
+		    org-inline-src-block
+		    org-latex-and-related
+		    org-link
+		    org-meta-line
+		    org-property-value
+		    org-ref-cite-face
+		    org-special-keyword
+		    org-tag
+		    org-todo
+		    org-todo-keyword-done
+		    org-todo-keyword-habt
+		    org-todo-keyword-kill
+		    org-todo-keyword-outd
+		    org-todo-keyword-todo
+		    org-todo-keyword-wait
+		    org-verbatim))
+	    (spell-fu-mode)))
 
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
