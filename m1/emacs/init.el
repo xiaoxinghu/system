@@ -805,6 +805,23 @@
   (setq org-babel-python-command "python3"
 	org-confirm-babel-evaluate nil))
 
+(use-package org-modern
+  :hook
+  (org-mode . global-org-modern-mode))
+
+(setq-default line-spacing 2)
+
+;; look and feel
+(use-package olivetti)
+
+(defun my/org-mode ()
+  (olivetti-mode)
+  (olivetti-set-width 80)
+  ;; turn off line numbers
+  (display-line-numbers-mode -1))
+
+(add-hook 'org-mode-hook 'my/org-mode)
+
 (define-key org-mode-map (kbd "M-j")
   'org-goto)
 
@@ -833,6 +850,63 @@
 (leader!
   "a a" 'my/agenda
   "c" 'org-capture)
+
+;; Detecting Agenda Files
+;; Got this from [[https://wohanley.com/posts/org-setup/][this post]].
+
+;; (setq my/org-agenda-directory (expand-file-name "todo" org-directory))
+(require 'find-lisp)
+
+(defun my/find-org-files (directory)
+  (find-lisp-find-files directory "\.org$"))
+
+(defun who-org/agenda-files-update (&rest _)
+  (let ((todo-zettels (->> (format "rg --files-with-matches '(TODO)|(NEXT)|(HOLD)|(WAITING)' %s" org-directory)
+			   (shell-command-to-string)
+			   (s-lines)
+			   (-filter (lambda (line) (not (s-blank? line)))))))
+    (setq org-agenda-files todo-zettels)))
+
+(advice-add 'org-agenda :before #'who-org/agenda-files-update)
+
+;; Faces and Colors
+(with-no-warnings
+  (custom-declare-face '+org-todo-active  '((t (:inherit (bold font-lock-constant-face org-todo)))) "")
+  (custom-declare-face '+org-todo-idea '((t (:inherit (bold font-lock-doc-face org-todo)))) "")
+  (custom-declare-face '+org-todo-onhold  '((t (:inherit (bold warning org-todo)))) "")
+  (custom-declare-face '+org-todo-cancel  '((t (:inherit (bold error org-todo)))) ""))
+
+(setq org-todo-keyword-faces
+      '(("[-]"  . +org-todo-active)
+	;; ("TODO"  . +org-todo-active)
+	("[?]"  . +org-todo-onhold)
+	("IDEA" . +org-todo-idea)
+	;; ("HOLD" . +org-todo-onhold)
+	("NO"   . +org-todo-cancel)))
+
+;;;###autoload
+(defun my/agenda ()
+  (interactive)
+  (org-agenda "a" "a")
+  ;; (let ((org-agenda-span 'day)
+	;; (org-super-agenda-groups
+	;;  '(
+	;;    (:name "Today"
+	;; 	  :time-grid t
+	;; 	  :date today
+	;; 	  :scheduled today
+	;; 	  :todo "TODO"
+	;; 	  :order 1
+	;; 	  )
+	;;    ;; (:name "Today"
+	;;    ;; 	  :scheduled today)
+	;;    (:name "Important"
+	;; 	  ;; Single arguments given alone
+	;; 	  :priority "A")
+	;;    (:name "Tasks" :and (:todo "TODO" :not (:category "inbox")))
+	;;    )))
+  ;;   (org-todo-list "TODO"))
+  )
 
 (use-package org-ql
   :after org
@@ -904,7 +978,33 @@
    (lambda (node)
     (member "project" (org-roam-node-tags node)))))
 
+(defhydra hydra-notes (:hint nil)
+  "notes"
+  ("i" (find-file (expand-file-name "inbox.org" my/notes-location)) "inbox" :color blue)
+  ("a" org-agenda "agenda" :color blue)
+  ("n" org-roam-capture "Capture a note" :color blue)
+  ("l" org-roam-buffer-toggle "links" :color blue)
+  ("f" (affe-find denote-directory) "find notes" :color blue)
+  ("s" (affe-grep denote-directory) "search notes" :color blue)
+  ("j" denote-journal "journal" :color blue)
+  ("t" org-roam-dailies-goto-today "Today" :color blue)
+  ("q" nil "quit"))
 
+(defhydra hydra-dailies (:hint nil)
+  "daily notes"
+  ("d" org-roam-dailies-goto-date "Goto date" :color blue)
+  ("D" org-roam-dailies-capture-date "Capture date" :color blue)
+  ("t" org-roam-dailies-goto-today "Goto today" :color blue)
+  ("T" org-roam-dailies-capture-today "Capture today" :color blue)
+  ("j" org-roam-dailies-goto-next-note "next" :color red)
+  ("k" org-roam-dailies-goto-previous-note "previous" :color red)
+  ("q" nil "quit"))
+
+(leader! "n" '("notes" . hydra-notes/body))
+(leader! "d" 'hydra-dailies/body)
+(tyrant!
+  "M-n" 'org-roam-node-find
+  "M-N" 'my/org-find-project)
 
 (use-package evil-org
   :after org
@@ -918,16 +1018,6 @@
 	      (visual-line-mode)
 	      (org-indent-mode)))
 
-;; look and feel
-(use-package olivetti)
-
-(defun my/org-mode ()
-  (olivetti-mode)
-  (olivetti-set-width 80)
-  ;; turn off line numbers
-  (display-line-numbers-mode -1))
-
-(add-hook 'org-mode-hook 'my/org-mode)
 
 (setq org-image-actual-width nil)
 (use-package org-download)
