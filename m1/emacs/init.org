@@ -4,10 +4,13 @@
 * Personal Config
 
 #+begin_src emacs-lisp
+(defcustom my/dark-theme 'modus-vivendi-tinted
+  "My default dark theme")
+(defcustom my/light-theme 'modus-operandi-tinted
+  "My default light theme")
 (defcustom my/notes-location (expand-file-name "~/Documents/notes")
   "My default notes location")
 #+end_src
-
 * Core
 
 ** get the correct env
@@ -78,6 +81,7 @@
 #+end_src
 
 ** COMMENT server
+
 #+begin_src emacs-lisp
 (server-start)
 #+end_src
@@ -156,6 +160,25 @@ These just for not hurting my eyes when using emacs.
 
 ** theme
 
+*** theme changing
+
+Toggle theme when system theme changes. This is for the macport version of emacs.
+Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm_source=share&utm_medium=web2x&context=3][here]].
+
+#+begin_src emacs-lisp
+(defun my/toggle-theme ()
+  "Load theme, taking current system APPEARANCE into consideration."
+  (mapc #'disable-theme custom-enabled-themes)
+  (let ((appearance (plist-get (mac-application-state) :appearance)))
+    (cond ((equal appearance "NSAppearanceNameAqua")
+           (load-theme my/light-theme :no-confirm))
+          ((equal appearance "NSAppearanceNameDarkAqua")
+           (load-theme my/dark-theme :no-confirm)))))
+
+(add-hook 'after-init-hook 'my/toggle-theme)
+(add-hook 'mac-effective-appearance-change-hook 'my/toggle-theme)
+#+end_src
+
 *** ef-themes
 
 #+begin_src emacs-lisp :tangle no
@@ -207,7 +230,7 @@ These just for not hurting my eyes when using emacs.
   ;; Always reload the theme for changes to take effect!
 
   (setq modus-themes-custom-auto-reload nil
-	modus-themes-to-toggle '(modus-operandi modus-vivendi)
+	modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted)
 	modus-themes-mixed-fonts t
 	modus-themes-variable-pitch-ui nil
 	modus-themes-italic-constructs t
@@ -297,8 +320,7 @@ These just for not hurting my eyes when using emacs.
   ;; Make the active mode line have a pseudo 3D effect (this assumes
   ;; you are using the default mode line and not an extra package).
   (custom-set-faces
-   '(mode-line ((t :box (:style released-button)))))
-  (load-theme 'modus-vivendi-tinted :no-confirm))
+   '(mode-line ((t :box (:style released-button))))))
 #+end_src
 
 * Keys
@@ -537,12 +559,12 @@ These just for not hurting my eyes when using emacs.
   (marginalia-mode))
 
 ;; TODO: add meaningful bindings
-;; (use-package embark
-;;   :bind
-;;   ("M-." . embark-act)
-;;   ("M-;" . embark-dwim)
-;;   ("M-e" . embark-export)
-;;   ("C-h B" . embark-bindings))
+(use-package embark
+  :bind
+  ("M-." . embark-act)
+  ("M-;" . embark-dwim)
+  ("M-e" . embark-export)
+  ("C-h B" . embark-bindings))
 
 (use-package embark-consult
   :hook
@@ -985,6 +1007,9 @@ Disable spell check in certain places.
 
 ** UI enhancement
 
+Some tips can be found in [[https://github.com/pprevos/emacs-writing-studio/blob/master/modules/ews-rice-org.el][this project]] to rice up org.
+
+- [ ] [[https://github.com/minad/org-modern][org-modern]] helps prettify org-mode. There are some options in there.
 #+begin_src emacs-lisp
 (use-package org-modern
   :hook

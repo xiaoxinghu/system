@@ -1,3 +1,7 @@
+(defcustom my/dark-theme 'modus-vivendi-tinted
+  "My default dark theme")
+(defcustom my/light-theme 'modus-operandi-tinted
+  "My default light theme")
 (defcustom my/notes-location (expand-file-name "~/Documents/notes")
   "My default notes location")
 
@@ -105,6 +109,18 @@
   (setq hl-line-sticky-flag nil
 	global-hl-line-sticky-flag nil))
 
+(defun my/toggle-theme ()
+  "Load theme, taking current system APPEARANCE into consideration."
+  (mapc #'disable-theme custom-enabled-themes)
+  (let ((appearance (plist-get (mac-application-state) :appearance)))
+    (cond ((equal appearance "NSAppearanceNameAqua")
+           (load-theme my/light-theme :no-confirm))
+          ((equal appearance "NSAppearanceNameDarkAqua")
+           (load-theme my/dark-theme :no-confirm)))))
+
+(add-hook 'after-init-hook 'my/toggle-theme)
+(add-hook 'mac-effective-appearance-change-hook 'my/toggle-theme)
+
 (use-package modus-themes
   :custom
   ;; (my/dark-theme 'ef-bio)
@@ -120,7 +136,7 @@
   ;; Always reload the theme for changes to take effect!
 
   (setq modus-themes-custom-auto-reload nil
-	modus-themes-to-toggle '(modus-operandi modus-vivendi)
+	modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted)
 	modus-themes-mixed-fonts t
 	modus-themes-variable-pitch-ui nil
 	modus-themes-italic-constructs t
@@ -210,8 +226,7 @@
   ;; Make the active mode line have a pseudo 3D effect (this assumes
   ;; you are using the default mode line and not an extra package).
   (custom-set-faces
-   '(mode-line ((t :box (:style released-button)))))
-  (load-theme 'modus-vivendi-tinted :no-confirm))
+   '(mode-line ((t :box (:style released-button))))))
 
 (setq mac-command-modifier 'meta)
 (setq mac-option-modifier 'super)
@@ -427,12 +442,12 @@
   (marginalia-mode))
 
 ;; TODO: add meaningful bindings
-;; (use-package embark
-;;   :bind
-;;   ("M-." . embark-act)
-;;   ("M-;" . embark-dwim)
-;;   ("M-e" . embark-export)
-;;   ("C-h B" . embark-bindings))
+(use-package embark
+  :bind
+  ("M-." . embark-act)
+  ("M-;" . embark-dwim)
+  ("M-e" . embark-export)
+  ("C-h B" . embark-bindings))
 
 (use-package embark-consult
   :hook
