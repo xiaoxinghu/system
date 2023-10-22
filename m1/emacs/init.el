@@ -283,7 +283,7 @@
 (general-create-definer local-leader!
   :states '(normal)
   ;; :prefix my-local-leader
-  :prefix ",")
+  :prefix "m")
 (leader! "hf" 'describe-function)
 
 (use-package which-key
@@ -324,9 +324,11 @@
 
 (leader!
   "h" '(nil :which-key "help")
+  "h h" '("help" . help-for-help)
   "h f" '("function" . describe-function)
   "h v" '("variable" . describe-variable)
   "h k" '("key" . describe-key)
+  "h c" '("cursor" . what-cursor-position)
   )
 
 (leader!
@@ -1087,9 +1089,9 @@
   ("o" eglot-code-action-organize-imports "orgnize import" :color blue)
   ("q" nil "quit"))
 
-(tyrant!
-  :states '(normal)
-  ";" 'hydra-check/body)
+;; (tyrant!
+;;   :states '(normal)
+;;   ";" 'hydra-check/body)
 
 (defgroup shebang nil
   "Shebang."
