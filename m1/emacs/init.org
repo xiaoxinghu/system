@@ -10,6 +10,8 @@
   "My default light theme")
 (defcustom my/notes-location (expand-file-name "~/Documents/notes")
   "My default notes location")
+(defcustom my/frame 'pos
+  "floating frame system, can be 'mini or 'pos")
 #+end_src
 * Core
 
@@ -514,25 +516,21 @@ Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm
   (leader! "f r" #'crux-recentf-find-file))
 #+end_src
 
+** COMMENT mini-frame
+
+#+begin_src emacs-lisp
+(use-package mini-frame
+  :if (eq my/frame 'mini)
+  :config
+  (mini-frame-mode 1))
+#+end_src
+
 ** Vertico
 
 #+begin_src emacs-lisp
 (use-package vertico
   :init
   (vertico-mode))
-
-(use-package vertico-posframe
-  :after vertico
-  :requires posframe
-  :config
-  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-top-center)
-  (setq vertico-posframe-parameters
-	'((internal-border-width . 10)
-	  (left-fringe . 8)
-	  (right-fringe . 8)
-	  ))
-  (vertico-posframe-mode 1)
-  )
 
 (use-package vertico-directory
   :after vertico
@@ -582,33 +580,7 @@ Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm
   ;; (setq consult-ripgrep-args "rg --null --hidden --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --line-number .")
   )
 
-(use-package corfu
-  :custom
-  (corfu-cycle t)
-  (corfu-auto t)
-  :general
-  (corfu-map
-   "TAB"  'corfu-next
-   "[tab]" 'corfu-next
-   "S-TAB" 'corfu-previous
-   "[backtab]" 'corfu-previous)
-  :init
-  (global-corfu-mode))
-
-(use-package corfu-popupinfo
-  :after corfu
-  :ensure nil
-  :init
-  (corfu-popupinfo-mode 1))
-
-;; (use-package corfu-echo
-;;   :after corfu
-;;   :straight nil
-;;   :init
-;;   (corfu-echo-mode 1))
-
 ;; Find config example [[https://github.com/minad/cape][here]].
-
 (use-package cape
   :init
   ;; Add `completion-at-point-functions', used by `completion-at-point'.
@@ -634,6 +606,55 @@ Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm
   (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
 #+end_src
 
+*** corfu
+
+In buffer completion with child frame.
+
+#+begin_src emacs-lisp
+(use-package corfu
+  :custom
+  (corfu-cycle t)
+  (corfu-auto t)
+  :general
+  (corfu-map
+   "TAB"  'corfu-next
+   "[tab]" 'corfu-next
+   "S-TAB" 'corfu-previous
+   "[backtab]" 'corfu-previous)
+  :init
+  (global-corfu-mode))
+
+(use-package corfu-popupinfo
+  :after corfu
+  :ensure nil
+  :init
+  (corfu-popupinfo-mode 1))
+
+;; (use-package corfu-echo
+;;   :after corfu
+;;   :straight nil
+;;   :init
+;;   (corfu-echo-mode 1))
+#+end_src
+
+*** COMMENT floating frame with =posframe=
+
+#+begin_src emacs-lisp
+(use-package vertico-posframe
+  :after vertico
+  :if (eq 'my/frame 'pos)
+  :requires posframe
+  :config
+  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-top-center)
+  (setq vertico-posframe-parameters
+	'((internal-border-width . 10)
+	  (left-fringe . 8)
+	  (right-fringe . 8)
+	  ))
+  (vertico-posframe-mode 1)
+  )
+#+end_src
+
 ** project
 
 #+begin_src emacs-lisp
@@ -644,7 +665,9 @@ Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm
   (setq projectile-completion-system 'default))
 #+end_src
 
-** git
+** magit
+
+*** self
 
 #+begin_src emacs-lisp
 (use-package magit
@@ -687,10 +710,24 @@ Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm
 ;; (use-package magit-delta
 ;;   :after magit
 ;;   :hook (magit-mode . magit-delta-mode))
+;; (setq magit-refresh-status-buffer nil)
+#+end_src
 
+*** open files in browser
+
+#+begin_src emacs-lisp
 (use-package browse-at-remote
-  :after magit)
+  :after magit
+  :general
+  (:keymaps '(dired-mode-map magit-log-mode-map magit-status-mode-map)
+	    :states 'normal
+	    "gb" 'browse-at-remote)
+  )
+#+end_src
 
+*** github
+
+#+begin_src emacs-lisp
 (use-package forge
   :after magit)
 
@@ -699,24 +736,22 @@ Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm
   :config
   (setq consult-gh-default-orgs-list '("xiaoxinghu" "orgapp" "nib-group"))
   (setq consult-gh-default-clone-directory "~/Projects"))
-
-;; (setq magit-refresh-status-buffer nil)
 #+end_src
 
-Keybindings
+*** Keybindings
 
 #+begin_src emacs-lisp
 (defhydra hydra-git (:hint nil)
   "git"
   ("g" magit-status "status" :color blue)
-  ("r" browse-at-remote "remote" :color blue)
+  ("b" browse-at-remote "browse" :color blue)
   ("s" magit-stage-buffer-file "stage" :color blue)
   ("S" consult-gh-search-repos "stage" :color blue)
   ("c" magit-commit "commit" :color blue)
   ("p" magit-push "push" :color blue)
   ("l" magit-log "log" :color blue)
   ("f" magit-log-buffer-file "log" :color blue)
-  ("b" magit-blame "blame" :color blue)
+  ;; ("b" magit-blame "blame" :color blue)
   ("q" nil "quit"))
 
 (leader! "g" '("git" . hydra-git/body))
@@ -738,7 +773,8 @@ Keybindings
    auto-revert-remote-files nil
    ;; Ask whether destination dirs should get created when copying/removing files.
    dired-create-destination-dirs 'ask
-   dired-listing-switches "-alh"))
+   dired-listing-switches "-alh")
+  )
 
 ;; (use-package dired-preview
 ;;   :after dired
@@ -1256,7 +1292,15 @@ Some tips can be found in [[https://github.com/pprevos/emacs-writing-studio/blob
 
 * Coding
 
-** lsp
+** eldoc
+
+Make it a box.
+
+#+begin_src emacs-lisp :tangle no
+(use-package eldoc-box)
+#+end_src
+
+** COMMENT lsp
 
 #+begin_src emacs-lisp
 (use-package lsp-mode
@@ -1316,6 +1360,24 @@ Some tips can be found in [[https://github.com/pprevos/emacs-writing-studio/blob
 ;; (evil-define-minor-mode-key 'normal lsp-mode (kbd "SPC l") lsp-command-map)
 (general-def 'normal lsp-mode :definer 'minor-mode
   "M-l" 'hydra-lsp/body)
+#+end_src
+
+** eglot
+#+begin_src emacs-lisp
+(use-package eglot
+  :hook
+  ((
+    typescript-mode
+    web-mode
+    js2-mode
+    js-mode
+    yaml-mode
+    python-mode
+    js-ts-mode
+    typescript-ts-mode
+    yaml-ts-mode
+    ) . eglot-ensure)
+)
 #+end_src
 
 ** treesitter

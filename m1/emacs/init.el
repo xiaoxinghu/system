@@ -4,6 +4,8 @@
   "My default light theme")
 (defcustom my/notes-location (expand-file-name "~/Documents/notes")
   "My default notes location")
+(defcustom my/frame 'pos
+  "floating frame system, can be 'mini or 'pos")
 
 (use-package exec-path-from-shell
   :config
@@ -404,19 +406,6 @@
   :init
   (vertico-mode))
 
-(use-package vertico-posframe
-  :after vertico
-  :requires posframe
-  :config
-  (setq vertico-posframe-poshandler #'posframe-poshandler-frame-top-center)
-  (setq vertico-posframe-parameters
-	'((internal-border-width . 10)
-	  (left-fringe . 8)
-	  (right-fringe . 8)
-	  ))
-  (vertico-posframe-mode 1)
-  )
-
 (use-package vertico-directory
   :after vertico
   :ensure nil
@@ -465,6 +454,31 @@
   ;; (setq consult-ripgrep-args "rg --null --hidden --line-buffered --color=never --max-columns=1000 --path-separator /   --smart-case --no-heading --line-number .")
   )
 
+;; Find config example [[https://github.com/minad/cape][here]].
+(use-package cape
+  :init
+  ;; Add `completion-at-point-functions', used by `completion-at-point'.
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-history)
+  (add-to-list 'completion-at-point-functions #'cape-symbol)
+  )
+
+(use-package emacs
+  :init
+  (setq completion-cycle-threshold 3)
+  (setq tab-always-indent 'complete))
+
+(use-package dabbrev
+  :ensure nil
+  ;; Swap M-/ and C-M-/
+  :general
+  (:states 'normal
+	   "M-/" 'dabbrev-completion
+	   "C-M-/" 'dabbrev-expand)
+  :custom
+  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
+
 (use-package corfu
   :custom
   (corfu-cycle t)
@@ -489,32 +503,6 @@
 ;;   :straight nil
 ;;   :init
 ;;   (corfu-echo-mode 1))
-
-;; Find config example [[https://github.com/minad/cape][here]].
-
-(use-package cape
-  :init
-  ;; Add `completion-at-point-functions', used by `completion-at-point'.
-  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (add-to-list 'completion-at-point-functions #'cape-history)
-  (add-to-list 'completion-at-point-functions #'cape-symbol)
-  )
-
-(use-package emacs
-  :init
-  (setq completion-cycle-threshold 3)
-  (setq tab-always-indent 'complete))
-
-(use-package dabbrev
-  :ensure nil
-  ;; Swap M-/ and C-M-/
-  :general
-  (:states 'normal
-	   "M-/" 'dabbrev-completion
-	   "C-M-/" 'dabbrev-expand)
-  :custom
-  (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
 
 (use-package projectile
   :init
@@ -562,9 +550,15 @@
 ;; (use-package magit-delta
 ;;   :after magit
 ;;   :hook (magit-mode . magit-delta-mode))
+;; (setq magit-refresh-status-buffer nil)
 
 (use-package browse-at-remote
-  :after magit)
+  :after magit
+  :general
+  (:keymaps '(dired-mode-map magit-log-mode-map magit-status-mode-map)
+	    :states 'normal
+	    "gb" 'browse-at-remote)
+  )
 
 (use-package forge
   :after magit)
@@ -575,19 +569,17 @@
   (setq consult-gh-default-orgs-list '("xiaoxinghu" "orgapp" "nib-group"))
   (setq consult-gh-default-clone-directory "~/Projects"))
 
-;; (setq magit-refresh-status-buffer nil)
-
 (defhydra hydra-git (:hint nil)
   "git"
   ("g" magit-status "status" :color blue)
-  ("r" browse-at-remote "remote" :color blue)
+  ("b" browse-at-remote "browse" :color blue)
   ("s" magit-stage-buffer-file "stage" :color blue)
   ("S" consult-gh-search-repos "stage" :color blue)
   ("c" magit-commit "commit" :color blue)
   ("p" magit-push "push" :color blue)
   ("l" magit-log "log" :color blue)
   ("f" magit-log-buffer-file "log" :color blue)
-  ("b" magit-blame "blame" :color blue)
+  ;; ("b" magit-blame "blame" :color blue)
   ("q" nil "quit"))
 
 (leader! "g" '("git" . hydra-git/body))
@@ -605,7 +597,8 @@
    auto-revert-remote-files nil
    ;; Ask whether destination dirs should get created when copying/removing files.
    dired-create-destination-dirs 'ask
-   dired-listing-switches "-alh"))
+   dired-listing-switches "-alh")
+  )
 
 ;; (use-package dired-preview
 ;;   :after dired
@@ -1038,63 +1031,20 @@
 (use-package org-download)
 (use-package org-cliplink)
 
-(use-package lsp-mode
-  :commands lsp
-  :custom
-  (lsp-completion-provider :none) ;; we use Corfu instead
-  (lsp-headerline-breadcrumb-enable nil)
-  (lsp-headerline-breadcrumb-enable nil)
-  :init
-  ;; (setq lsp-keymap-prefix "C-c l")
-  (defun my/lsp-mode-setup-completion ()
-    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-	  '(orderless))) ;; Configure orderless
+(use-package eglot
   :hook
-  ((typescript-mode . lsp)
-   (web-mode . lsp)
-   (typescript-ts-mode . lsp)
-   (js2-mode . lsp)
-   (js-mode . lsp)
-   (js-ts-mode . lsp)
-   (jsx-mode . lsp)
-   (yaml-mode . lsp)
-   (yaml-ts-mode . lsp)
-   (lsp-mode . lsp-enable-which-key-integration)
-   (lsp-completion-mode . my/lsp-mode-setup-completion))
-  :config
-  (evil-define-key 'normal 'global "gD" 'lsp-find-type-definition)
-  (evil-define-key 'normal 'global "gr" 'lsp-find-references)
-  (evil-define-key 'normal 'global "K" 'lsp-ui-doc-glance)
-  ;; (evil-define-key 'normal 'global "gr" 'lsp-find-references)
-  (evil-define-key 'normal 'global "gR" 'lsp-rename)
-  (evil-define-key 'normal 'global (kbd "M-.") 'lsp-execute-code-action))
-
-;; (with-eval-after-load 'lsp-mode
-;;   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
-
-(use-package lsp-ui
-  :hook
-  (lsp-mode . lsp-ui-mode)
-  :config
-  (setq lsp-ui-doc-show-with-cursor nil))
-
-(use-package consult-lsp
-  :after (lsp-mode))
-
-;; Key bindings.
-
-(defhydra hydra-lsp (:hint nil)
-  "lsp"
-  ("s" consult-lsp-file-symbols "symbols" :color blue)
-  ("r" lsp-find-references "reference" :color blue)
-  ("R" lsp-rename "rename" :color blue)
-  ("o" lsp-organize-imports "org imports" :color blue)
-  ("q" nil "quit"))
-
-
-;; (evil-define-minor-mode-key 'normal lsp-mode (kbd "SPC l") lsp-command-map)
-(general-def 'normal lsp-mode :definer 'minor-mode
-  "M-l" 'hydra-lsp/body)
+  ((
+    typescript-mode
+    web-mode
+    js2-mode
+    js-mode
+    yaml-mode
+    python-mode
+    js-ts-mode
+    typescript-ts-mode
+    yaml-ts-mode
+    ) . eglot-ensure)
+)
 
 (use-package treesit-auto
   :config
