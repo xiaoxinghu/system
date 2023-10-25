@@ -62,6 +62,8 @@
 (setq epg-pinentry-mode 'loopback)
 (setq auth-source-debug t)
 
+(server-start)
+
 (scroll-bar-mode -1)
 ;; (menu-bar-mode -1)
 (tool-bar-mode -1)
@@ -232,6 +234,8 @@
 
 (setq mac-command-modifier 'meta)
 (setq mac-option-modifier 'super)
+
+(global-set-key (kbd "M-c") nil)
 
 (use-package evil
   :custom
@@ -1033,6 +1037,10 @@
 (use-package org-download)
 (use-package org-cliplink)
 
+(use-package eldoc-box
+  :general
+  (general-nmap :keymaps 'eglot-mode-map "K" 'eldoc-box-help-at-point))
+
 (use-package eglot
   :hook
   ((
@@ -1046,6 +1054,11 @@
     typescript-ts-mode
     yaml-ts-mode
     ) . eglot-ensure)
+
+  :config
+  (add-to-list
+   'eglot-server-programs
+   `(astro-mode . ("astro-ls" "--stdio" :initializationOptions (:typescript (:tsdk ,my/typescript-path)))))
 )
 
 (use-package treesit-auto

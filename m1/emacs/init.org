@@ -82,7 +82,7 @@
 (setq auth-source-debug t)
 #+end_src
 
-** COMMENT server
+** server
 
 #+begin_src emacs-lisp
 (server-start)
@@ -330,6 +330,12 @@ Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm
 #+begin_src emacs-lisp
 (setq mac-command-modifier 'meta)
 (setq mac-option-modifier 'super)
+#+end_src
+
+** unbind some keys
+
+#+begin_src emacs-lisp
+(global-set-key (kbd "M-c") nil)
 #+end_src
 
 ** evil mode
@@ -1298,8 +1304,10 @@ Some tips can be found in [[https://github.com/pprevos/emacs-writing-studio/blob
 
 Make it a box.
 
-#+begin_src emacs-lisp :tangle no
-(use-package eldoc-box)
+#+begin_src emacs-lisp
+(use-package eldoc-box
+  :general
+  (general-nmap :keymaps 'eglot-mode-map "K" 'eldoc-box-help-at-point))
 #+end_src
 
 ** COMMENT lsp
@@ -1379,6 +1387,11 @@ Make it a box.
     typescript-ts-mode
     yaml-ts-mode
     ) . eglot-ensure)
+
+  :config
+  (add-to-list
+   'eglot-server-programs
+   `(astro-mode . ("astro-ls" "--stdio" :initializationOptions (:typescript (:tsdk ,my/typescript-path)))))
 )
 #+end_src
 

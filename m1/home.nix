@@ -22,6 +22,8 @@
       nodePackages.yarn
       nodePackages.typescript
       nodePackages.typescript-language-server
+      nodePackages.vscode-langservers-extracted
+      nodePackages."@astrojs/language-server"
       rust-analyzer
     ];
   };

@@ -17,6 +17,13 @@ in {
       # '';
     };
 
+    ".emacs.d/early-init.el" = {
+      text = ''
+(defcustom my/typescript-path "${pkgs.nodePackages.typescript}/lib/node_modules/typescript/lib"
+  "typescript install path")
+'';
+    };
+
     # Raycast script so that "Run Emacs" is available and uses Emacs daemon
     # "${xdg_dataHome}/bin/emacsclient" = {
     #   executable = true;
