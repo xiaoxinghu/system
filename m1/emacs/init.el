@@ -384,14 +384,11 @@
 (use-package affe
   :config
   (consult-customize affe-grep :preview-key (kbd "M-."))
-  (tyrant! "M-O" #'affe-find)
-  (leader! "fF" #'affe-find)
   ;; -*- lexical-binding: t -*-
-  ;; (defun affe-orderless-regexp-compiler (input _type _ignorecase)
-  ;;   (setq input (orderless-pattern-compiler input))
-  ;;   (cons input (lambda (str) (orderless--highlight input str))))
-  ;; (setq affe-regexp-compiler #'affe-orderless-regexp-compiler)
-  )
+  (defun affe-orderless-regexp-compiler (input _type _ignorecase)
+    (setq input (orderless-pattern-compiler input))
+    (cons input (apply-partially #'orderless--highlight input)))
+  (setq affe-regexp-compiler #'affe-orderless-regexp-compiler))
 
 (use-package bufler
   :general
@@ -1059,6 +1056,9 @@
   (add-to-list
    'eglot-server-programs
    `(astro-mode . ("astro-ls" "--stdio" :initializationOptions (:typescript (:tsdk ,my/typescript-path)))))
+  (add-to-list
+   'eglot-server-programs
+   `(jsx-mode . ("typescript-language-server" "--stdio")))
 )
 
 (use-package treesit-auto

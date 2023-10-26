@@ -20,9 +20,11 @@
       nodejs_20
       nodePackages.pnpm
       nodePackages.yarn
+      nodePackages.prettier
       nodePackages.typescript
       nodePackages.typescript-language-server
       nodePackages.vscode-langservers-extracted
+      nodePackages.yaml-language-server
       nodePackages."@astrojs/language-server"
       rust-analyzer
     ];

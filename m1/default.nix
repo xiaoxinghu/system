@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 let
   myEmacs = (pkgs.callPackage ./emacs/app.nix {});
+  emacsApp = "${myEmacs}/Applications/Emacs.app/Contents/MacOS/Emacs";
 in {
 
   services.nix-daemon.enable = true;
@@ -53,15 +54,17 @@ in {
     users.xiaoxing = import ./home.nix;
   };
 
-  # launchd.user.agents.emacs.path = [ config.environment.systemPath ];
-  # launchd.user.agents.emacs.serviceConfig = {
-  #   KeepAlive = true;
-  #   ProgramArguments = [
-  #     "/bin/sh"
-  #     "-c"
-  #     "/bin/wait4path ${myEmacs}/bin/emacs && exec ${myEmacs}/bin/emacs --fg-daemon"
-  #   ];
-  #   StandardErrorPath = "/tmp/emacs.err.log";
-  #   StandardOutPath = "/tmp/emacs.out.log";
+  # launchd.user.agents.emacs = {
+  #   path = [ config.environment.systemPath ];
+  #   serviceConfig = {
+  #     KeepAlive = true;
+  #     ProgramArguments = [
+  #       "/bin/sh"
+  #       "-c"
+  #       "/bin/wait4path ${emacsApp} && exec ${emacsApp} --daemon"
+  #     ];
+  #     StandardErrorPath = "/tmp/emacs.err.log";
+  #     StandardOutPath = "/tmp/emacs.out.log";
+  #   };
   # };
 }
