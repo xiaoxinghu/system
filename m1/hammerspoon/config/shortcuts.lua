@@ -11,7 +11,7 @@ hs.hotkey.bind({ "cmd", "ctrl", "alt", "shift" }, "e", function()
 end)
 
 hs.hotkey.bind({ "cmd", "ctrl", "alt", "shift" }, "b", function()
-	hs.application.launchOrFocus("Safari")
+	hs.application.launchOrFocus("Google Chrome")
 end)
 
 hs.hotkey.bind({ "cmd", "ctrl", "alt", "shift" }, "x", function()
