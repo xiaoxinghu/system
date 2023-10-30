@@ -313,7 +313,9 @@
   "M-a" 'mark-whole-buffer
   "M-f" 'consult-line
   "M-F" 'consult-ripgrep
-  "M-t" 'vterm
+  "M-t" 'tab-bar-new-tab
+  "M-{" 'tab-bar-switch-to-prev-tab
+  "M-}" 'tab-bar-switch-to-next-tab
   "M-=" 'text-scale-increase
   "M--" 'text-scale-decrease
   "M-0" (lambda () (interactive) (text-scale-set 0)))
@@ -708,6 +710,13 @@
 		    org-verbatim))
 	    (spell-fu-mode)))
 
+(require 'speedbar)
+(speedbar-add-supported-extension
+ (list
+  ".jsx"
+  ".tsx"
+  ))
+
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
 
@@ -742,6 +751,18 @@
 
 (leader!
   "o o" '+macos/reveal-in-finder)
+
+(defun ns-raise-emacs ()
+  "Raise Emacs."
+  (mac-do-applescript "tell application \"Emacs\" to activate"))
+(defun ns-raise-emacs-with-frame (frame)
+  "Raise Emacs and select the provided frame."
+  (with-selected-frame frame
+    (when (display-graphic-p)
+      (ns-raise-emacs))))
+(add-hook 'after-make-frame-functions 'ns-raise-emacs-with-frame)
+(when (display-graphic-p)
+  (ns-raise-emacs))
 
 (use-package org
   :config
@@ -1051,15 +1072,87 @@
     typescript-ts-mode
     yaml-ts-mode
     ) . eglot-ensure)
-
+  :custom
+  (eglot-confirm-server-initiated-edits nil)
   :config
+  (defun my/eglot-organize-imports ()
+    (interactive)
+    (if (derived-mode-p major-mode #'typescript-ts-base-mode)
+        (seq-do
+         (lambda (kind) (interactive)
+           (ignore-errors
+             (eglot-code-actions (buffer-end 0) (buffer-end 1) kind t)))
+         ;; https://github.com/typescript-language-server/typescript-language-server#code-actions-on-save
+         (list
+          "source.addMissingImports.ts"
+          "source.fixAll.ts"
+          ;; "source.removeUnused.ts"
+          "source.addMissingImports.ts"
+          "source.removeUnusedImports.ts"
+          ;; "source.sortImports.ts"
+          ;; "source.organizeImports.ts"
+          ))
+      (funcall-interactively #'eglot-code-action-organize-imports)))
+  (add-to-list
+     'eglot-server-programs
+     `(astro-mode . ("astro-ls" "--stdio" :initializationOptions (:typescript (:tsdk ,my/typescript-path)))))
   (add-to-list
    'eglot-server-programs
-   `(astro-mode . ("astro-ls" "--stdio" :initializationOptions (:typescript (:tsdk ,my/typescript-path)))))
-  (add-to-list
-   'eglot-server-programs
-   `(jsx-mode . ("typescript-language-server" "--stdio")))
-)
+   '((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode jsx-mode)
+     "typescript-language-server" "--stdio"
+     :initializationOptions
+     (:preferences
+      (
+       ;; https://github.com/microsoft/TypeScript/blob/main/src/server/protocol.ts#L3410-L3539
+       :disableSuggestions                                    :json-false     ;; boolean
+       :quotePreference                                       "single"        ;; "auto" | "double" | "single"
+       :includeCompletionsForModuleExports                    t               ;; boolean
+       :includeCompletionsForImportStatements                 t               ;; boolean
+       :includeCompletionsWithSnippetText                     t               ;; boolean
+       :includeCompletionsWithInsertText                      t               ;; boolean
+       :includeAutomaticOptionalChainCompletions              t               ;; boolean
+       :includeCompletionsWithClassMemberSnippets             t               ;; boolean
+       :includeCompletionsWithObjectLiteralMethodSnippets     t               ;; boolean
+       :useLabelDetailsInCompletionEntries                    t               ;; boolean
+       :allowIncompleteCompletions                            t               ;; boolean
+       :importModuleSpecifierPreference                       "shortest"      ;; "shortest" | "project-relative" | "relative" | "non-relative"
+       :importModuleSpecifierEnding                           "minimal"       ;; "auto" | "minimal" | "index" | "js"
+       :allowTextChangesInNewFiles                            t               ;; boolean
+       ;; :lazyConfiguredProjectsFromExternalProject                          ;; boolean
+       :providePrefixAndSuffixTextForRename                   t               ;; boolean
+       :provideRefactorNotApplicableReason                    :json-false     ;; boolean
+       :allowRenameOfImportPath                               t               ;; boolean
+       ;; :includePackageJsonAutoImports                                      ;; "auto" | "on" | "off"
+       :jsxAttributeCompletionStyle                           "auto"          ;; "auto" | "braces" | "none"
+       :displayPartsForJSDoc                                  t               ;; boolean
+       :generateReturnInDocTemplate                           t               ;; boolean
+       :includeInlayParameterNameHints                        "all"           ;; "none" | "literals" | "all"
+       :includeInlayParameterNameHintsWhenArgumentMatchesName t               ;; boolean
+       :includeInlayFunctionParameterTypeHints                t               ;; boolean,
+       :includeInlayVariableTypeHints                         t               ;; boolean
+       :includeInlayVariableTypeHintsWhenTypeMatchesName      t               ;; boolean
+       :includeInlayPropertyDeclarationTypeHints              t               ;; boolean
+       :includeInlayFunctionLikeReturnTypeHints               t               ;; boolean
+       :includeInlayEnumMemberValueHints                      t               ;; boolean
+       ;; :autoImportFileExcludePatterns                                      ;; string[]
+       ;; :organizeImportsIgnoreCase                                          ;; "auto" | boolean
+       ;; :organizeImportsCollation                                           ;; "ordinal" | "unicode"
+       ;; :organizeImportsCollationLocale                                     ;; string
+       ;; :organizeImportsNumericCollation                                    ;; boolean
+       ;; :organizeImportsAccentCollation                                     ;; boolean
+       ;; :organizeImportsCaseFirst                                           ;; "upper" | "lower" | false
+       :disableLineTextInReferences                           :json-false))))
+  (defhydra hydra-eglot (:hint nil)
+    "language"
+    ("s" consult-imenu "symbols" :color blue)
+    ("r" xref-find-references "reference" :color blue)
+    ("R" eglot-rename "rename" :color blue)
+    ("o" eglot-code-action-organize-imports "org imports" :color blue)
+    ("q" nil "quit"))
+    (general-nmap :keymaps 'eglot-mode-map "gR" 'eglot-rename)
+    (leader! :keymaps 'eglot-mode-map "." 'eglot-code-action-quickfix)
+    (leader! :keymaps 'eglot-mode-map "l" 'hydra-eglot/body)
+  )
 
 (use-package treesit-auto
   :config
@@ -1092,6 +1185,10 @@
   :config
   (setq eldoc-idle-delay 0
 	eldoc-echo-area-use-multiline-p nil))
+
+(use-package aggressive-indent
+  :config
+  (global-aggressive-indent-mode 1))
 
 (defhydra hydra-check (:hint nil)
   "flymake"

@@ -424,7 +424,9 @@ Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm
   "M-a" 'mark-whole-buffer
   "M-f" 'consult-line
   "M-F" 'consult-ripgrep
-  "M-t" 'vterm
+  "M-t" 'tab-bar-new-tab
+  "M-{" 'tab-bar-switch-to-prev-tab
+  "M-}" 'tab-bar-switch-to-next-tab
   "M-=" 'text-scale-increase
   "M--" 'text-scale-decrease
   "M-0" (lambda () (interactive) (text-scale-set 0)))
@@ -924,7 +926,18 @@ Disable spell check in certain places.
 	    (spell-fu-mode)))
 #+end_src
 
-* OS
+** speedbar
+
+#+begin_src emacs-lisp
+(require 'speedbar)
+(speedbar-add-supported-extension
+ (list
+  ".jsx"
+  ".tsx"
+  ))
+#+end_src
+
+* macOS
 
 ** styles
 
@@ -966,6 +979,22 @@ Disable spell check in certain places.
 
 (leader!
   "o o" '+macos/reveal-in-finder)
+#+end_src
+
+** better window manager integration
+
+#+begin_src emacs-lisp
+(defun ns-raise-emacs ()
+  "Raise Emacs."
+  (mac-do-applescript "tell application \"Emacs\" to activate"))
+(defun ns-raise-emacs-with-frame (frame)
+  "Raise Emacs and select the provided frame."
+  (with-selected-frame frame
+    (when (display-graphic-p)
+      (ns-raise-emacs))))
+(add-hook 'after-make-frame-functions 'ns-raise-emacs-with-frame)
+(when (display-graphic-p)
+  (ns-raise-emacs))
 #+end_src
 
 * org-mode
@@ -1297,7 +1326,7 @@ Some tips can be found in [[https://github.com/pprevos/emacs-writing-studio/blob
 
 * Coding
 
-** eldoc
+** =eldoc=
 
 Make it a box.
 
@@ -1307,7 +1336,7 @@ Make it a box.
   (general-nmap :keymaps 'eglot-mode-map "K" 'eldoc-box-help-at-point))
 #+end_src
 
-** COMMENT lsp
+** COMMENT =lsp=
 
 #+begin_src emacs-lisp
 (use-package lsp-mode
@@ -1369,8 +1398,8 @@ Make it a box.
   "M-l" 'hydra-lsp/body)
 #+end_src
 
-** eglot
-#+begin_src emacs-lisp
+** =eglot=
+#+begin_src emacs-lisp :noweb yes
 (use-package eglot
   :hook
   ((
@@ -1384,15 +1413,119 @@ Make it a box.
     typescript-ts-mode
     yaml-ts-mode
     ) . eglot-ensure)
-
+  :custom
+  (eglot-confirm-server-initiated-edits nil)
   :config
-  (add-to-list
+  <<eglot/functions>>
+  <<eglot/add-servers>>
+  <<eglot/keybind>>
+  )
+#+end_src
+
+*** functions
+:PROPERTIES:
+:header-args: :noweb-ref eglot/functions
+:END:
+
+Better organize imports. [[https://www.reddit.com/r/emacs/comments/11bqzvk/emacs29_and_eglot_inlay_hints/][source]]
+#+begin_src emacs-lisp
+(defun my/eglot-organize-imports ()
+  (interactive)
+  (if (derived-mode-p major-mode #'typescript-ts-base-mode)
+      (seq-do
+       (lambda (kind) (interactive)
+         (ignore-errors
+           (eglot-code-actions (buffer-end 0) (buffer-end 1) kind t)))
+       ;; https://github.com/typescript-language-server/typescript-language-server#code-actions-on-save
+       (list
+        "source.addMissingImports.ts"
+        "source.fixAll.ts"
+        ;; "source.removeUnused.ts"
+        "source.addMissingImports.ts"
+        "source.removeUnusedImports.ts"
+        ;; "source.sortImports.ts"
+        ;; "source.organizeImports.ts"
+        ))
+    (funcall-interactively #'eglot-code-action-organize-imports)))
+#+end_src
+
+*** config servers
+:PROPERTIES:
+:header-args: :noweb-ref eglot/add-servers
+:END:
+
+#+begin_src emacs-lisp
+(add-to-list
    'eglot-server-programs
    `(astro-mode . ("astro-ls" "--stdio" :initializationOptions (:typescript (:tsdk ,my/typescript-path)))))
-  (add-to-list
-   'eglot-server-programs
-   `(jsx-mode . ("typescript-language-server" "--stdio")))
-)
+#+end_src
+
+#+begin_src emacs-lisp
+(add-to-list
+ 'eglot-server-programs
+ '((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode jsx-mode)
+   "typescript-language-server" "--stdio"
+   :initializationOptions
+   (:preferences
+    (
+     ;; https://github.com/microsoft/TypeScript/blob/main/src/server/protocol.ts#L3410-L3539
+     :disableSuggestions                                    :json-false     ;; boolean
+     :quotePreference                                       "single"        ;; "auto" | "double" | "single"
+     :includeCompletionsForModuleExports                    t               ;; boolean
+     :includeCompletionsForImportStatements                 t               ;; boolean
+     :includeCompletionsWithSnippetText                     t               ;; boolean
+     :includeCompletionsWithInsertText                      t               ;; boolean
+     :includeAutomaticOptionalChainCompletions              t               ;; boolean
+     :includeCompletionsWithClassMemberSnippets             t               ;; boolean
+     :includeCompletionsWithObjectLiteralMethodSnippets     t               ;; boolean
+     :useLabelDetailsInCompletionEntries                    t               ;; boolean
+     :allowIncompleteCompletions                            t               ;; boolean
+     :importModuleSpecifierPreference                       "shortest"      ;; "shortest" | "project-relative" | "relative" | "non-relative"
+     :importModuleSpecifierEnding                           "minimal"       ;; "auto" | "minimal" | "index" | "js"
+     :allowTextChangesInNewFiles                            t               ;; boolean
+     ;; :lazyConfiguredProjectsFromExternalProject                          ;; boolean
+     :providePrefixAndSuffixTextForRename                   t               ;; boolean
+     :provideRefactorNotApplicableReason                    :json-false     ;; boolean
+     :allowRenameOfImportPath                               t               ;; boolean
+     ;; :includePackageJsonAutoImports                                      ;; "auto" | "on" | "off"
+     :jsxAttributeCompletionStyle                           "auto"          ;; "auto" | "braces" | "none"
+     :displayPartsForJSDoc                                  t               ;; boolean
+     :generateReturnInDocTemplate                           t               ;; boolean
+     :includeInlayParameterNameHints                        "all"           ;; "none" | "literals" | "all"
+     :includeInlayParameterNameHintsWhenArgumentMatchesName t               ;; boolean
+     :includeInlayFunctionParameterTypeHints                t               ;; boolean,
+     :includeInlayVariableTypeHints                         t               ;; boolean
+     :includeInlayVariableTypeHintsWhenTypeMatchesName      t               ;; boolean
+     :includeInlayPropertyDeclarationTypeHints              t               ;; boolean
+     :includeInlayFunctionLikeReturnTypeHints               t               ;; boolean
+     :includeInlayEnumMemberValueHints                      t               ;; boolean
+     ;; :autoImportFileExcludePatterns                                      ;; string[]
+     ;; :organizeImportsIgnoreCase                                          ;; "auto" | boolean
+     ;; :organizeImportsCollation                                           ;; "ordinal" | "unicode"
+     ;; :organizeImportsCollationLocale                                     ;; string
+     ;; :organizeImportsNumericCollation                                    ;; boolean
+     ;; :organizeImportsAccentCollation                                     ;; boolean
+     ;; :organizeImportsCaseFirst                                           ;; "upper" | "lower" | false
+     :disableLineTextInReferences                           :json-false))))
+#+end_src
+
+
+*** keybindings
+:PROPERTIES:
+:header-args: :noweb-ref eglot/keybind
+:END:
+
+#+begin_src emacs-lisp
+(defhydra hydra-eglot (:hint nil)
+  "language"
+  ("s" consult-imenu "symbols" :color blue)
+  ("r" xref-find-references "reference" :color blue)
+  ("R" eglot-rename "rename" :color blue)
+  ("o" eglot-code-action-organize-imports "org imports" :color blue)
+  ("q" nil "quit"))
+  (general-nmap :keymaps 'eglot-mode-map "gR" 'eglot-rename)
+  (leader! :keymaps 'eglot-mode-map "." 'eglot-code-action-quickfix)
+  (leader! :keymaps 'eglot-mode-map "l" 'hydra-eglot/body)
 #+end_src
 
 ** treesitter
@@ -1414,13 +1547,13 @@ Make it a box.
 	  (c . ("https://github.com/tree-sitter/tree-sitter-c"))
 	  (cpp . ("https://github.com/tree-sitter/tree-sitter-cpp"))
 	  (css . ("https://github.com/tree-sitter/tree-sitter-css"))
-	  ;; (go . ("https://github.com/tree-sitter/tree-sitter-go"))
+	  (go . ("https://github.com/tree-sitter/tree-sitter-go"))
 	  (html . ("https://github.com/tree-sitter/tree-sitter-html"))
 	  (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript"))
 	  (json . ("https://github.com/tree-sitter/tree-sitter-json"))
 	  (lua . ("https://github.com/Azganoth/tree-sitter-lua"))
 	  (make . ("https://github.com/alemuller/tree-sitter-make"))
-	  ;; (ocaml . ("https://github.com/tree-sitter/tree-sitter-ocaml" "ocaml/src" "ocaml"))
+	  (ocaml . ("https://github.com/tree-sitter/tree-sitter-ocaml" "ocaml/src" "ocaml"))
 	  (python . ("https://github.com/tree-sitter/tree-sitter-python"))
 	  ;; (php . ("https://github.com/tree-sitter/tree-sitter-php"))
 	  (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "typescript/src" "typescript"))
@@ -1496,6 +1629,13 @@ Documents is always useful.
   :config
   (setq eldoc-idle-delay 0
 	eldoc-echo-area-use-multiline-p nil))
+#+end_src
+
+Better indentation.
+#+begin_src emacs-lisp
+(use-package aggressive-indent
+  :config
+  (global-aggressive-indent-mode 1))
 #+end_src
 
 ** flymake
@@ -1629,7 +1769,7 @@ Return the command from the run-ext-command-map otherwise"
   :mode "\\.nix\\'")
 #+end_src
 
-** js
+** JavaScript
 
 Basic settings.
 #+begin_src emacs-lisp
@@ -1690,6 +1830,16 @@ Astro.
 ;; (with-eval-after-load 'lsp-mode
 ;;   (add-to-list 'lsp-language-id-configuration
 ;;                '(astro-mode . "astro")))
+#+end_src
+
+Tide. =disabled=.
+
+#+begin_src emacs-lisp :tangle no
+(use-package tide
+  :hook ((typescript-ts-mode . tide-setup)
+	 (tsx-ts-mode . tide-setup)
+	 (typescript-ts-mode . tide-hl-identifier-mode)
+	 (before-save . tide-format-before-save)))
 #+end_src
 
 ** lua
