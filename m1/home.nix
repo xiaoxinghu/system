@@ -11,6 +11,7 @@
     stateVersion = "23.05";
     packages = with pkgs; [
       htop
+      bottom
       jq
       fd
       tree
