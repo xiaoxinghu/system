@@ -1509,7 +1509,6 @@ Better organize imports. [[https://www.reddit.com/r/emacs/comments/11bqzvk/emacs
      :disableLineTextInReferences                           :json-false))))
 #+end_src
 
-
 *** keybindings
 :PROPERTIES:
 :header-args: :noweb-ref eglot/keybind
@@ -1518,6 +1517,7 @@ Better organize imports. [[https://www.reddit.com/r/emacs/comments/11bqzvk/emacs
 #+begin_src emacs-lisp
 (defhydra hydra-eglot (:hint nil)
   "language"
+  ("e" flymake-show-buffer-diagnostics "errors" :color blue)
   ("s" consult-imenu "symbols" :color blue)
   ("r" xref-find-references "reference" :color blue)
   ("R" eglot-rename "rename" :color blue)
@@ -1909,4 +1909,17 @@ Tide. =disabled=.
   :config
   (setq markdown-command "multimarkdown")
   (unbind-key "M-p" markdown-mode-map))
+#+end_src
+
+
+* Other Tools
+
+** ChatGPT
+
+#+begin_src emacs-lisp
+(use-package chatgpt-shell
+  :custom
+  ((chatgpt-shell-openai-key
+    (lambda ()
+      (auth-source-pick-first-password :host "api.openai.com")))))
 #+end_src

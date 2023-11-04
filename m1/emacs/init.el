@@ -1144,6 +1144,7 @@
        :disableLineTextInReferences                           :json-false))))
   (defhydra hydra-eglot (:hint nil)
     "language"
+    ("e" flymake-show-buffer-diagnostics "errors" :color blue)
     ("s" consult-imenu "symbols" :color blue)
     ("r" xref-find-references "reference" :color blue)
     ("R" eglot-rename "rename" :color blue)
@@ -1373,3 +1374,9 @@ Return the command from the run-ext-command-map otherwise"
   :config
   (setq markdown-command "multimarkdown")
   (unbind-key "M-p" markdown-mode-map))
+
+(use-package chatgpt-shell
+  :custom
+  ((chatgpt-shell-openai-key
+    (lambda ()
+      (auth-source-pick-first-password :host "api.openai.com")))))
