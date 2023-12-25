@@ -18,6 +18,9 @@
       eza
       fzf
       delta
+      plantuml
+      bun
+      terraform
       nodejs_20
       nodePackages.pnpm
       nodePackages.yarn
@@ -27,6 +30,7 @@
       nodePackages.vscode-langservers-extracted
       nodePackages.yaml-language-server
       nodePackages."@astrojs/language-server"
+      nodePackages.cdktf-cli
       rust-analyzer
     ];
   };
@@ -81,4 +85,4 @@
       };
     };
   };
-}
+  }

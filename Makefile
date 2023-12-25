@@ -2,6 +2,9 @@ CONFIG_FILES = ./m1/emacs/init.org ./m1/nvim/init.org
 
 all: build
 
+update:
+	nix flake update --recreate-lock-file
+
 # one-time setup
 init:
 	nix run nix-darwin -- switch --flake .

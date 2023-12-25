@@ -21,6 +21,9 @@ in {
       text = ''
 (defcustom my/typescript-path "${pkgs.nodePackages.typescript}/lib/node_modules/typescript/lib"
   "typescript install path")
+
+(defcustom my/plantuml-jar-path "${pkgs.plantuml}"
+  "plantuml install path")
 '';
     };
 

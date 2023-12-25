@@ -1,5 +1,9 @@
 { config, pkgs,... }:
-
+let
+  theEmacs = pkgs.emacs29-macport.overrideAttrs (old: rec {
+    withNativeComp = true;
+  });
+in
 pkgs.emacsWithPackagesFromUsePackage {
   config = ./init.el;
   defaultInitFile = false;
@@ -8,7 +12,7 @@ pkgs.emacsWithPackagesFromUsePackage {
   #   src = ./default.org;
   #   # inherit (config.xdg) configHome dataHome;
   # };
-  package = pkgs.emacs29-macport;
+  package = theEmacs;
   alwaysEnsure = true;
   # alwaysTangle = true;
   extraEmacsPackages = epkgs: with epkgs; [

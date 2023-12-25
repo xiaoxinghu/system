@@ -64,6 +64,10 @@
 
 (server-start)
 
+(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+(add-to-list 'default-frame-alist '(ns-appearance . dark))
+(add-to-list 'default-frame-alist '(alpha-background . 70))
+
 (scroll-bar-mode -1)
 ;; (menu-bar-mode -1)
 (tool-bar-mode -1)
@@ -231,6 +235,17 @@
   ;; you are using the default mode line and not an extra package).
   (custom-set-faces
    '(mode-line ((t :box (:style released-button))))))
+
+(use-package spacious-padding
+  :config
+  (setq spacious-padding-widths
+	'( :internal-border-width 15
+           :header-line-width 4
+           :mode-line-width 6
+           :tab-width 4
+           :right-divider-width 30
+           :scroll-bar-width 8))
+  (spacious-padding-mode 1))
 
 (setq mac-command-modifier 'meta)
 (setq mac-option-modifier 'super)
@@ -659,11 +674,13 @@
   :config
   (pdf-tools-install))
 
-(use-package bookmark+
-  :ensure nil
-  ;; :straight (:host github :repo "emacsmirror/bookmark-plus")
-  :general
-  ("M-s-b" 'consult-bookmark))
+;; (use-package bookmark+
+;;   ;; :straight (:host github :repo "emacsmirror/bookmark-plus")
+;;   :general
+;;   ("M-s-b" 'consult-bookmark))
+
+(require 'bookmark+)
+(tyrant! "M-s-b" 'consult-bookmark)
 
 (setq
  ispell-dictionary "en_US"
@@ -716,9 +733,6 @@
   ".jsx"
   ".tsx"
   ))
-
-(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-(add-to-list 'default-frame-alist '(ns-appearance . dark))
 
 (defun +macos-open-with (&optional app-name path)
   "Send PATH to APP-NAME on OSX."
@@ -1059,108 +1073,71 @@
   :general
   (general-nmap :keymaps 'eglot-mode-map "K" 'eldoc-box-help-at-point))
 
-(use-package eglot
-  :hook
-  ((
-    typescript-mode
-    web-mode
-    js2-mode
-    js-mode
-    yaml-mode
-    python-mode
-    js-ts-mode
-    typescript-ts-mode
-    yaml-ts-mode
-    ) . eglot-ensure)
+(use-package lsp-mode
+  :commands lsp
   :custom
-  (eglot-confirm-server-initiated-edits nil)
+  (lsp-completion-provider :none) ;; we use Corfu instead
+  (lsp-headerline-breadcrumb-enable nil)
+  (lsp-headerline-breadcrumb-enable nil)
+  :init
+  ;; (setq lsp-keymap-prefix "C-c l")
+  (defun my/lsp-mode-setup-completion ()
+    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+	  '(orderless))) ;; Configure orderless
+  :hook
+  ((typescript-mode . lsp)
+   (web-mode . lsp)
+   (typescript-ts-mode . lsp)
+   (js2-mode . lsp)
+   (js-mode . lsp)
+   (js-ts-mode . lsp)
+   (jsx-mode . lsp)
+   (tsx-mode . lsp)
+   (tsx-ts-mode . lsp)
+   (yaml-mode . lsp)
+   (yaml-ts-mode . lsp)
+   (lsp-mode . lsp-enable-which-key-integration)
+   (lsp-completion-mode . my/lsp-mode-setup-completion))
   :config
-  (defun my/eglot-organize-imports ()
-    (interactive)
-    (if (derived-mode-p major-mode #'typescript-ts-base-mode)
-        (seq-do
-         (lambda (kind) (interactive)
-           (ignore-errors
-             (eglot-code-actions (buffer-end 0) (buffer-end 1) kind t)))
-         ;; https://github.com/typescript-language-server/typescript-language-server#code-actions-on-save
-         (list
-          "source.addMissingImports.ts"
-          "source.fixAll.ts"
-          ;; "source.removeUnused.ts"
-          "source.addMissingImports.ts"
-          "source.removeUnusedImports.ts"
-          ;; "source.sortImports.ts"
-          ;; "source.organizeImports.ts"
-          ))
-      (funcall-interactively #'eglot-code-action-organize-imports)))
-  (add-to-list
-     'eglot-server-programs
-     `(astro-mode . ("astro-ls" "--stdio" :initializationOptions (:typescript (:tsdk ,my/typescript-path)))))
-  (add-to-list
-   'eglot-server-programs
-   '((js-mode js-ts-mode tsx-ts-mode typescript-ts-mode typescript-mode jsx-mode)
-     "typescript-language-server" "--stdio"
-     :initializationOptions
-     (:preferences
-      (
-       ;; https://github.com/microsoft/TypeScript/blob/main/src/server/protocol.ts#L3410-L3539
-       :disableSuggestions                                    :json-false     ;; boolean
-       :quotePreference                                       "single"        ;; "auto" | "double" | "single"
-       :includeCompletionsForModuleExports                    t               ;; boolean
-       :includeCompletionsForImportStatements                 t               ;; boolean
-       :includeCompletionsWithSnippetText                     t               ;; boolean
-       :includeCompletionsWithInsertText                      t               ;; boolean
-       :includeAutomaticOptionalChainCompletions              t               ;; boolean
-       :includeCompletionsWithClassMemberSnippets             t               ;; boolean
-       :includeCompletionsWithObjectLiteralMethodSnippets     t               ;; boolean
-       :useLabelDetailsInCompletionEntries                    t               ;; boolean
-       :allowIncompleteCompletions                            t               ;; boolean
-       :importModuleSpecifierPreference                       "shortest"      ;; "shortest" | "project-relative" | "relative" | "non-relative"
-       :importModuleSpecifierEnding                           "minimal"       ;; "auto" | "minimal" | "index" | "js"
-       :allowTextChangesInNewFiles                            t               ;; boolean
-       ;; :lazyConfiguredProjectsFromExternalProject                          ;; boolean
-       :providePrefixAndSuffixTextForRename                   t               ;; boolean
-       :provideRefactorNotApplicableReason                    :json-false     ;; boolean
-       :allowRenameOfImportPath                               t               ;; boolean
-       ;; :includePackageJsonAutoImports                                      ;; "auto" | "on" | "off"
-       :jsxAttributeCompletionStyle                           "auto"          ;; "auto" | "braces" | "none"
-       :displayPartsForJSDoc                                  t               ;; boolean
-       :generateReturnInDocTemplate                           t               ;; boolean
-       :includeInlayParameterNameHints                        "all"           ;; "none" | "literals" | "all"
-       :includeInlayParameterNameHintsWhenArgumentMatchesName t               ;; boolean
-       :includeInlayFunctionParameterTypeHints                t               ;; boolean,
-       :includeInlayVariableTypeHints                         t               ;; boolean
-       :includeInlayVariableTypeHintsWhenTypeMatchesName      t               ;; boolean
-       :includeInlayPropertyDeclarationTypeHints              t               ;; boolean
-       :includeInlayFunctionLikeReturnTypeHints               t               ;; boolean
-       :includeInlayEnumMemberValueHints                      t               ;; boolean
-       ;; :autoImportFileExcludePatterns                                      ;; string[]
-       ;; :organizeImportsIgnoreCase                                          ;; "auto" | boolean
-       ;; :organizeImportsCollation                                           ;; "ordinal" | "unicode"
-       ;; :organizeImportsCollationLocale                                     ;; string
-       ;; :organizeImportsNumericCollation                                    ;; boolean
-       ;; :organizeImportsAccentCollation                                     ;; boolean
-       ;; :organizeImportsCaseFirst                                           ;; "upper" | "lower" | false
-       :disableLineTextInReferences                           :json-false))))
-  (defhydra hydra-eglot (:hint nil)
-    "language"
-    ("e" flymake-show-buffer-diagnostics "errors" :color blue)
-    ("s" consult-imenu "symbols" :color blue)
-    ("r" xref-find-references "reference" :color blue)
-    ("R" eglot-rename "rename" :color blue)
-    ("o" eglot-code-action-organize-imports "org imports" :color blue)
-    ("q" nil "quit"))
-    (general-nmap :keymaps 'eglot-mode-map "gR" 'eglot-rename)
-    (leader! :keymaps 'eglot-mode-map "." 'eglot-code-action-quickfix)
-    (leader! :keymaps 'eglot-mode-map "l" 'hydra-eglot/body)
-  )
+  (evil-define-key 'normal 'global "gD" 'lsp-find-type-definition)
+  (evil-define-key 'normal 'global "gr" 'lsp-find-references)
+  (evil-define-key 'normal 'global "K" 'lsp-ui-doc-glance)
+  ;; (evil-define-key 'normal 'global "gr" 'lsp-find-references)
+  (evil-define-key 'normal 'global "gR" 'lsp-rename)
+  (evil-define-key 'normal 'global (kbd "M-.") 'lsp-execute-code-action))
+
+;; (with-eval-after-load 'lsp-mode
+;;   (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
+
+(use-package lsp-ui
+  :hook
+  (lsp-mode . lsp-ui-mode)
+  :config
+  (setq lsp-ui-doc-show-with-cursor nil))
+
+(use-package consult-lsp
+  :after (lsp-mode))
+
+;; Key bindings.
+
+(defhydra hydra-lsp (:hint nil)
+  "lsp"
+  ("s" consult-lsp-file-symbols "symbols" :color blue)
+  ("r" lsp-find-references "reference" :color blue)
+  ("R" lsp-rename "rename" :color blue)
+  ("o" lsp-organize-imports "org imports" :color blue)
+  ("q" nil "quit"))
+
+
+;; (evil-define-minor-mode-key 'normal lsp-mode (kbd "SPC l") lsp-command-map)
+(general-def 'normal lsp-mode :definer 'minor-mode
+  "M-l" 'hydra-lsp/body)
 
 (use-package treesit-auto
   :config
   (global-treesit-auto-mode))
 
 (use-package apheleia
-  :ensure t
   :config
   (apheleia-global-mode +1))
 
@@ -1187,22 +1164,37 @@
   (setq eldoc-idle-delay 0
 	eldoc-echo-area-use-multiline-p nil))
 
-(use-package aggressive-indent
+(use-package flycheck
+  :init
+  (global-flycheck-mode)
   :config
-  (global-aggressive-indent-mode 1))
+  (setq flycheck-emacs-lisp-load-path 'inherit))
+
+(use-package flycheck-aspell
+  :config
+  (add-to-list 'flycheck-checkers 'markdown-aspell-dynamic)
+  (add-to-list 'flycheck-checkers 'texinfo-aspell-dynamic)
+  (flycheck-aspell-define-checker "org"
+				  "Org" ("--add-filter" "url")
+				  (org-mode))
+  (add-to-list 'flycheck-checkers 'org-aspell-dynamic))
+
+;; Keys.
 
 (defhydra hydra-check (:hint nil)
-  "flymake"
-  ("j" flymake-goto-next-error "next error")
-  ("k" flymake-goto-prev-error "prev error")
-  ("l" flymake-show-buffer-diagnostics "list errors" :color blue)
-  ("a" eglot-code-actions "action" :color blue)
-  ("o" eglot-code-action-organize-imports "orgnize import" :color blue)
+  "flycheck"
+  ("j" flycheck-next-error "next error")
+  ("k" flycheck-previous-error "prev error")
+  ("l" flycheck-list-errors "list errors" :color blue)
+  ("a" lsp-execute-code-action "action" :color blue)
+  ("o" lsp-organize-imports "orgnize import" :color blue)
   ("q" nil "quit"))
 
-;; (tyrant!
-;;   :states '(normal)
-;;   ";" 'hydra-check/body)
+(tyrant!
+  :states '(normal)
+  ";" 'hydra-check/body)
+
+(evil-define-key 'normal 'global (kbd ";") 'hydra-check/body)
 
 (defgroup shebang nil
   "Shebang."
@@ -1375,8 +1367,61 @@ Return the command from the run-ext-command-map otherwise"
   (setq markdown-command "multimarkdown")
   (unbind-key "M-p" markdown-mode-map))
 
+(use-package mermaid-mode
+  :mode "\\.mmd\\'"
+  :config
+  (setq mermaid-mmdc-location "docker")
+  (setq mermaid-flags "run -u 1000 -v /tmp:/tmp ghcr.io/mermaid-js/mermaid-cli/mermaid-cli:9.1.6")
+  )
+
+(use-package plantuml-mode)
+  ;; :config
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-indent-level 4)
+  ;; (setq plantuml-indent-string "    ")
+  ;; (setq plantuml-executable-path "/usr/bin/plantuml")
+  ;; (setq plantuml-executable-args '("-charset" "UTF-8"))
+  ;; (setq plantuml-default-exec-mode 'executable)
+  ;; (setq plantuml-executable-args '("-charset" "UTF-8"))
+  ;; (setq plantuml-indent-level 4)
+  ;; (setq plantuml-indent-string "    ")
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plant))
+
+(use-package terraform-mode
+  :custom (terraform-indent-level 4))
+
 (use-package chatgpt-shell
   :custom
   ((chatgpt-shell-openai-key
     (lambda ()
       (auth-source-pick-first-password :host "api.openai.com")))))
+
+(use-package vterm)

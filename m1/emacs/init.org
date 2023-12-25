@@ -90,6 +90,12 @@
 
 * UI
 
+#+begin_src emacs-lisp
+(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+(add-to-list 'default-frame-alist '(ns-appearance . dark))
+(add-to-list 'default-frame-alist '(alpha-background . 70))
+#+end_src
+
 ** simple and clean
 
 These just for not hurting my eyes when using emacs.
@@ -323,6 +329,21 @@ Ideas from [[https://www.reddit.com/r/emacs/comments/ym9jw3/comment/ive4zk8/?utm
   ;; you are using the default mode line and not an extra package).
   (custom-set-faces
    '(mode-line ((t :box (:style released-button))))))
+#+end_src
+
+** padding
+
+#+begin_src emacs-lisp
+(use-package spacious-padding
+  :config
+  (setq spacious-padding-widths
+	'( :internal-border-width 15
+           :header-line-width 4
+           :mode-line-width 6
+           :tab-width 4
+           :right-divider-width 30
+           :scroll-bar-width 8))
+  (spacious-padding-mode 1))
 #+end_src
 
 * Keys
@@ -854,11 +875,13 @@ https://github.com/xenodium/dwim-shell-command
 ** bookmark
 
 #+begin_src emacs-lisp
-(use-package bookmark+
-  :ensure nil
-  ;; :straight (:host github :repo "emacsmirror/bookmark-plus")
-  :general
-  ("M-s-b" 'consult-bookmark))
+;; (use-package bookmark+
+;;   ;; :straight (:host github :repo "emacsmirror/bookmark-plus")
+;;   :general
+;;   ("M-s-b" 'consult-bookmark))
+
+(require 'bookmark+)
+(tyrant! "M-s-b" 'consult-bookmark)
 #+end_src
 
 ** spell check
@@ -938,14 +961,6 @@ Disable spell check in certain places.
 #+end_src
 
 * macOS
-
-** styles
-
-#+begin_src emacs-lisp
-(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-(add-to-list 'default-frame-alist '(ns-appearance . dark))
-#+end_src
-
 ** open in finder
 #+begin_src emacs-lisp
 (defun +macos-open-with (&optional app-name path)
@@ -1336,7 +1351,7 @@ Make it a box.
   (general-nmap :keymaps 'eglot-mode-map "K" 'eldoc-box-help-at-point))
 #+end_src
 
-** COMMENT =lsp=
+** =lsp=
 
 #+begin_src emacs-lisp
 (use-package lsp-mode
@@ -1358,6 +1373,8 @@ Make it a box.
    (js-mode . lsp)
    (js-ts-mode . lsp)
    (jsx-mode . lsp)
+   (tsx-mode . lsp)
+   (tsx-ts-mode . lsp)
    (yaml-mode . lsp)
    (yaml-ts-mode . lsp)
    (lsp-mode . lsp-enable-which-key-integration)
@@ -1398,7 +1415,7 @@ Make it a box.
   "M-l" 'hydra-lsp/body)
 #+end_src
 
-** =eglot=
+** COMMENT =eglot=
 #+begin_src emacs-lisp :noweb yes
 (use-package eglot
   :hook
@@ -1587,7 +1604,6 @@ Better organize imports. [[https://www.reddit.com/r/emacs/comments/11bqzvk/emacs
 https://github.com/radian-software/apheleia, fast code formatting that doesn't drag your emacs down.
 #+begin_src emacs-lisp
 (use-package apheleia
-  :ensure t
   :config
   (apheleia-global-mode +1))
 
@@ -1632,13 +1648,13 @@ Documents is always useful.
 #+end_src
 
 Better indentation.
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package aggressive-indent
   :config
   (global-aggressive-indent-mode 1))
 #+end_src
 
-** flymake
+** COMMENT flymake
 
 #+begin_src emacs-lisp
 (defhydra hydra-check (:hint nil)
@@ -1653,6 +1669,43 @@ Better indentation.
 ;; (tyrant!
 ;;   :states '(normal)
 ;;   ";" 'hydra-check/body)
+#+end_src
+
+
+** flycheck
+
+#+begin_src emacs-lisp
+(use-package flycheck
+  :init
+  (global-flycheck-mode)
+  :config
+  (setq flycheck-emacs-lisp-load-path 'inherit))
+
+(use-package flycheck-aspell
+  :config
+  (add-to-list 'flycheck-checkers 'markdown-aspell-dynamic)
+  (add-to-list 'flycheck-checkers 'texinfo-aspell-dynamic)
+  (flycheck-aspell-define-checker "org"
+				  "Org" ("--add-filter" "url")
+				  (org-mode))
+  (add-to-list 'flycheck-checkers 'org-aspell-dynamic))
+
+;; Keys.
+
+(defhydra hydra-check (:hint nil)
+  "flycheck"
+  ("j" flycheck-next-error "next error")
+  ("k" flycheck-previous-error "prev error")
+  ("l" flycheck-list-errors "list errors" :color blue)
+  ("a" lsp-execute-code-action "action" :color blue)
+  ("o" lsp-organize-imports "orgnize import" :color blue)
+  ("q" nil "quit"))
+
+(tyrant!
+  :states '(normal)
+  ";" 'hydra-check/body)
+
+(evil-define-key 'normal 'global (kbd ";") 'hydra-check/body)
 #+end_src
 
 ** my own tools
@@ -1911,6 +1964,69 @@ Tide. =disabled=.
   (unbind-key "M-p" markdown-mode-map))
 #+end_src
 
+** mermaid
+
+#+begin_src emacs-lisp
+(use-package mermaid-mode
+  :mode "\\.mmd\\'"
+  :config
+  (setq mermaid-mmdc-location "docker")
+  (setq mermaid-flags "run -u 1000 -v /tmp:/tmp ghcr.io/mermaid-js/mermaid-cli/mermaid-cli:9.1.6")
+  )
+#+end_src
+
+** plantuml
+
+#+begin_src emacs-lisp
+(use-package plantuml-mode)
+  ;; :config
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-indent-level 4)
+  ;; (setq plantuml-indent-string "    ")
+  ;; (setq plantuml-executable-path "/usr/bin/plantuml")
+  ;; (setq plantuml-executable-args '("-charset" "UTF-8"))
+  ;; (setq plantuml-default-exec-mode 'executable)
+  ;; (setq plantuml-executable-args '("-charset" "UTF-8"))
+  ;; (setq plantuml-indent-level 4)
+  ;; (setq plantuml-indent-string "    ")
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plantuml-jar-path "/usr/share/java/plantuml/plantuml.jar")
+  ;; (setq plantuml-default-exec-mode 'jar)
+  ;; (setq plantuml-output-type "png")
+  ;; (setq plantuml-options "-charset UTF-8")
+  ;; (setq plant))
+#+end_src
+
+
+** terraform
+
+#+begin_src emacs-lisp
+(use-package terraform-mode
+  :custom (terraform-indent-level 4))
+#+end_src
 
 * Other Tools
 
@@ -1922,4 +2038,12 @@ Tide. =disabled=.
   ((chatgpt-shell-openai-key
     (lambda ()
       (auth-source-pick-first-password :host "api.openai.com")))))
+#+end_src
+
+** Terminal
+
+=vterm= looks promising.
+
+#+begin_src emacs-lisp
+(use-package vterm)
 #+end_src

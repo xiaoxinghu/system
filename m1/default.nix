@@ -22,6 +22,7 @@ in {
     casks = [
       "iterm2"
       "hammerspoon"
+      "docker"
     ];
   };
 
@@ -67,4 +68,5 @@ in {
   #     StandardOutPath = "/tmp/emacs.out.log";
   #   };
   # };
+
 }
