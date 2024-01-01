@@ -275,35 +275,12 @@
 (use-package evil-commentary
   :config (evil-commentary-mode 1))
 
-(use-package general
-  :config
-  (general-evil-setup)
-  ;; (general-create-definer tyrant!
-  ;;   :keymaps 'override)
-  ;; (general-create-definer leader!
-  ;;   ;; :prefix leader
-  ;;   :states '(normal visual insert emacs)
-  ;;   :prefix "SPC"
-  ;;   :non-normal-prefix "s-SPC")
-  ;; (general-create-definer local-leader!
-  ;;   :states '(normal)
-  ;;   ;; :prefix my-local-leader
-  ;;   :prefix ",")
-  ;; (leader! "hf" 'describe-function)
-  )
+(evil-set-leader 'normal (kbd "SPC"))
 
-(general-create-definer tyrant!
-  :keymaps 'override)
-(general-create-definer leader!
-  ;; :prefix leader
-  :states '(normal visual insert emacs)
-  :prefix "SPC"
-  :non-normal-prefix "s-SPC")
-(general-create-definer local-leader!
-  :states '(normal)
-  ;; :prefix my-local-leader
-  :prefix "m")
-(leader! "hf" 'describe-function)
+;; (use-package general
+;;   :config
+;;   (general-evil-setup)
+;;   )
 
 (use-package which-key
   :config
@@ -311,75 +288,72 @@
 
 (use-package hydra)
 
-(tyrant!
-  "M-o" 'find-file
-  "M-d" 'dired-jump
-  "M-w" 'evil-quit
-  "M-q" 'save-buffers-kill-terminal
-  "M-p" 'projectile-find-file-dwim
-  "M-P" 'projectile-switch-project
-  "M-r" 'consult-recent-file
-  "M-b" 'consult-buffer
-  "M-B" 'consult-project-buffer
-  "M-g" 'magit-status
-  "M-s" 'save-buffer
-  "M-S" 'save-some-buffers
-  "M-v" 'yank
-  "M-a" 'mark-whole-buffer
-  "M-f" 'consult-line
-  "M-F" 'consult-ripgrep
-  "M-t" 'tab-bar-new-tab
-  "M-{" 'tab-bar-switch-to-prev-tab
-  "M-}" 'tab-bar-switch-to-next-tab
-  "M-=" 'text-scale-increase
-  "M--" 'text-scale-decrease
-  "M-0" (lambda () (interactive) (text-scale-set 0)))
-
-(leader!
-  "u" '(universal-argument :which-key "universal argument")
-  "`" '("switch" . evil-switch-to-windows-last-buffer)
-  "o" '(nil :which-key "open")
-  ;; "o o" '+macos/reveal-in-finder
-  "x" '(nil :which-key "eval")
-  "x x" '("eval" . elisp-eval-region-or-buffer))
-
-(leader!
-  "h" '(nil :which-key "help")
-  "h h" '("help" . help-for-help)
-  "h f" '("function" . describe-function)
-  "h v" '("variable" . describe-variable)
-  "h k" '("key" . describe-key)
-  "h c" '("cursor" . what-cursor-position)
+(evil-define-key nil 'global
+  (kbd "M-o") 'find-file
+  (kbd "M-d") 'dired-jump
+  (kbd "M-w") 'evil-quit
+  (kbd "M-q") 'save-buffers-kill-terminal
+  (kbd "M-p") 'projectile-find-file-dwim
+  (kbd "M-P") 'projectile-switch-project
+  (kbd "M-r") 'consult-recent-file
+  (kbd "M-b") 'consult-buffer
+  (kbd "M-B") 'consult-project-buffer
+  (kbd "M-g") 'magit-status
+  (kbd "M-s") 'save-buffer
+  (kbd "M-S") 'save-some-buffers
+  (kbd "M-v") 'yank
+  (kbd "M-a") 'mark-whole-buffer
+  (kbd "M-f") 'consult-line
+  (kbd "M-F") 'consult-ripgrep
+  (kbd "M-t") 'tab-bar-new-tab
+  (kbd "M-{") 'tab-bar-switch-to-prev-tab
+  (kbd "M-}") 'tab-bar-switch-to-next-tab
+  (kbd "M-=") 'text-scale-increase
+  (kbd "M--") 'text-scale-decrease
+  (kbd "M-0") (lambda () (interactive) (text-scale-set 0))
   )
 
-(leader!
-  "a" '(nil :which-key "app")
-  "f" '(nil :which-key "file")
-  "fr" '(consult-recent-file :which-key "recent files")
-  "fR" '(consult-recent-file :which-key "recent files")
-  "ff" '(find-file :which-key "find file"))
+(evil-define-key 'normal 'global
+  (kbd "<leader>h") '("help" . (keymap))
+  (kbd "<leader>hf") '("help" . describe-function)
+  (kbd "<leader>hv") '("help" . describe-variable)
+  (kbd "<leader>hk") '("help" . describe-key)
+  (kbd "<leader>hc") '("help" . what-cursor-position)
+  (kbd "<leader>hh") '("help" . help-for-help))
 
-(leader!
-  "b" '(nil :which-key "buffer")
-  "bb" '(consult-buffer :which-key "switch buffer")
-  "bB" '(consult-project-buffer :which-key "project buffer")
-  "bm" '(bookmark-set :which-key "set bookmark")
-  "bM" '(bookmark-delete :which-key "delete bookmark")
-  "bk" '(kill-this-buffer :which-key "kill buffer"))
+(evil-define-key 'normal 'global
+  (kbd "<leader>f") '("file" . (keymap))
+  (kbd "<leader>ff") '("find file" . find-file)
+  (kbd "<leader>fr") '("recent file" . consult-recent-file))
 
-(leader!
-  "p" '(nil :which-key "project")
-  "pf" '(projectile-find-file-dwim :which-key "find file")
-  "pp" '(projectile-switch-project :which-key "find project")
-  "pb" '(consult-project-buffer :which-key "project buffer"))
+(evil-define-key 'normal 'global
+  (kbd "<leader>b") '("buffers" . (keymap))
+  (kbd "<leader>bb") '("switch buffer" . consult-buffer)
+  (kbd "<leader>bB") '("switch project buffer" . consult-project-buffer)
+  (kbd "<leader>bm") '("set bookmark" . bookmark-set)
+  (kbd "<leader>bM") '("delete bookmark" . bookmark-delete)
+  (kbd "<leader>bk") '("kill buffer" . kill-this-buffer))
 
-(leader!
-  "s" '(nil :which-key "search")
-  "sm" '(bookmark-jump :which-key "jump to bookmark")
-  "sb" '(consult-line :which-key "search buffer")
-  "sB" '(consult-line-multi 'all-buffer :which-key "search all open buffer")
-  "sp" '(consult-ripgrep :which-key "search project")
-  "sB" '(consult-line-multi 'all-buffer :which-key "search all open buffer"))
+(evil-define-key 'normal 'global
+  (kbd "<leader>p") '("project" . (keymap))
+  (kbd "<leader>pf") '("find file" . projectile-find-file-dwim)
+  (kbd "<leader>pp") '("find project" . projectile-switch-project)
+  (kbd "<leader>pb") '("project buffer" . consult-project-buffer))
+
+(evil-define-key 'normal 'global
+  (kbd "<leader>s") '("search" . (keymap))
+  (kbd "<leader>sm") '("jump to bookmark" . bookmark-jump)
+  (kbd "<leader>sb") '("search buffer" . consult-line)
+  (kbd "<leader>sB") '("search all open buffer" . consult-line-multi)
+  (kbd "<leader>sp") '("search project" . consult-ripgrep))
+
+(evil-define-key 'normal 'global
+  (kbd "<leader>u") '("universal argument" . universal-argument)
+  (kbd "<leader>`") '("switch" . evil-switch-to-windows-last-buffer)
+  (kbd "<leader>o") '("open" . (keymap))
+  (kbd "<leader>oo") '("reveal in finder" . +macos/reveal-in-finder)
+  (kbd "<leader>x") '("eval" . (keymap))
+  (kbd "<leader>xx") '("eval" . elisp-eval-region-or-buffer))
 
 ;; search
 (use-package anzu
@@ -408,19 +382,20 @@
   (setq affe-regexp-compiler #'affe-orderless-regexp-compiler))
 
 (use-package bufler
-  :general
-  (leader! "bb" #'bufler)
-  (:keymaps 'bufler-list-mode-map
-            :states 'normal
-            "," 'hydra:bufler/body
-            "RET" 'bufler-list-buffer-switch
-            "SPC" 'bufler-list-buffer-peek
-            "d" 'bufler-list-buffer-kill))
+  :config
+  (evil-define-key 'normal bufler-list-mode-map
+    "," 'hydra:bufler/body
+    "RET" 'bufler-list-buffer-switch
+    "SPC" 'bufler-list-buffer-peek
+    "d" 'bufler-list-buffer-kill)
+  (evil-define-key 'normal 'global
+    (kbd "<leader>bb") 'bufler))
+
 
 (use-package crux
-  :commands crux-open-with
-  :general
-  (leader! "f r" #'crux-recentf-find-file))
+  :commands crux-open-with)
+
+(evil-define-key 'normal 'global (kbd "<leader> fr") '("find recent files" . crux-recentf-find-file))
 
 (use-package vertico
   :init
@@ -430,10 +405,10 @@
   :after vertico
   :ensure nil
   ;; More convenient directory navigation commands
-  :general
-  (vertico-map
-   "DEL"  'vertico-directory-delete-char
-   "M-DEL"  'vertico-directory-delete-word)
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
   ;;; Tidy shadowed file names
   :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
@@ -492,25 +467,25 @@
 (use-package dabbrev
   :ensure nil
   ;; Swap M-/ and C-M-/
-  :general
-  (:states 'normal
-	   "M-/" 'dabbrev-completion
-	   "C-M-/" 'dabbrev-expand)
   :custom
   (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'")))
+
+(evil-define-key 'normal 'global
+  (kbd "M-/") 'dabbrev-completion
+  (kbd "C-M-/") 'dabbrev-expand)
 
 (use-package corfu
   :custom
   (corfu-cycle t)
   (corfu-auto t)
-  :general
-  (corfu-map
-   "TAB"  'corfu-next
-   "[tab]" 'corfu-next
-   "S-TAB" 'corfu-previous
-   "[backtab]" 'corfu-previous)
   :init
   (global-corfu-mode))
+
+(evil-define-key 'insert corfu-map
+  (kbd "TAB") 'corfu-next
+  (kbd "[tab]") 'corfu-next
+  (kbd "S-TAB") 'corfu-previous
+  (kbd "[backtab]") 'corfu-previous)
 
 (use-package corfu-popupinfo
   :after corfu
@@ -574,10 +549,10 @@
 
 (use-package browse-at-remote
   :after magit
-  :general
-  (:keymaps '(dired-mode-map magit-log-mode-map magit-status-mode-map)
-	    :states 'normal
-	    "gb" 'browse-at-remote)
+  :config
+  (let ((keymaps (list dired-mode-map magit-log-mode-map magit-status-mode-map)))
+    (dolist (keymap keymaps)
+      (evil-define-key 'normal keymap (kbd "gb") 'browse-at-remote)))
   )
 
 (use-package forge
@@ -602,7 +577,7 @@
   ;; ("b" magit-blame "blame" :color blue)
   ("q" nil "quit"))
 
-(leader! "g" '("git" . hydra-git/body))
+(evil-define-key 'normal 'global (kbd "SPC g") 'hydra-git/body)
 
 (use-package dired
   :ensure nil
@@ -628,8 +603,10 @@
 (use-package diredfl
   :hook (dired-mode . diredfl-mode))
 
-(general-define-key
-   :keymaps '(wdired-mode-map local) "M-s" 'wdired-finish-edit)
+;; (general-define-key
+;;    :keymaps '(wdired-mode-map local) "M-s" 'wdired-finish-edit)
+
+(evil-define-key 'normal wdired-mode-map (kbd "M-s") 'wdired-finish-edit)
 
 (use-package treemacs
   :config
@@ -680,52 +657,8 @@
 ;;   ("M-s-b" 'consult-bookmark))
 
 (require 'bookmark+)
-(tyrant! "M-s-b" 'consult-bookmark)
-
-(setq
- ispell-dictionary "en_US"
- ispell-personal-dictionary "~/.aspell.en.pws")
-
-(use-package spell-fu)
-
-(defhydra hydra-spell (:hint nil)
-  "spell"
-  ("j" spell-fu-goto-next-error "next")
-  ("k" spell-fu-goto-previous-error "prev")
-  ("s" spell-fu-word-add "add")
-  ("RET" ispell-word "correct")
-  ("q" nil "quit"))
-;; (leader! "s" '(hydra-spell/body :which-key "spell"))
-
-(add-hook 'org-mode-hook
-	  (lambda ()
-	    (setq spell-fu-faces-exclude
-		  '(org-block
-		    org-block-begin-line
-		    org-block-end-line
-		    org-cite
-		    org-cite-key
-		    org-code
-		    org-date
-		    org-footnote
-		    org-formula
-		    org-inline-src-block
-		    org-latex-and-related
-		    org-link
-		    org-meta-line
-		    org-property-value
-		    org-ref-cite-face
-		    org-special-keyword
-		    org-tag
-		    org-todo
-		    org-todo-keyword-done
-		    org-todo-keyword-habt
-		    org-todo-keyword-kill
-		    org-todo-keyword-outd
-		    org-todo-keyword-todo
-		    org-todo-keyword-wait
-		    org-verbatim))
-	    (spell-fu-mode)))
+(evil-define-key 'normal 'global
+  (kbd "M-s-b") 'consult-bookmark)
 
 (require 'speedbar)
 (speedbar-add-supported-extension
@@ -738,16 +671,16 @@
   "Send PATH to APP-NAME on OSX."
   (interactive)
   (let* ((path (expand-file-name
-                 (replace-regexp-in-string
-                   "'" "\\'"
-                   (or path (if (derived-mode-p 'dired-mode)
+                (replace-regexp-in-string
+                 "'" "\\'"
+                 (or path (if (derived-mode-p 'dired-mode)
                               (dired-get-file-for-visit)
-                              (buffer-file-name)))
-                   nil t)))
-          (command (format "open %s"
-                     (if app-name
-                       (format "-a %s '%s'" (shell-quote-argument app-name) path)
-                       (format "'%s'" path)))))
+                            (buffer-file-name)))
+                 nil t)))
+         (command (format "open %s"
+			  (if app-name
+			      (format "-a %s '%s'" (shell-quote-argument app-name) path)
+			    (format "'%s'" path)))))
     (message "Running: %s" command)
     (shell-command command)))
 
@@ -763,8 +696,7 @@
 (+macos--open-with reveal-project-in-finder "Finder"
                    (or (projectile-project-root) default-directory))
 
-(leader!
-  "o o" '+macos/reveal-in-finder)
+(evil-define-key 'normal 'global (kbd "<leader> oo") '("reveal in finder" . +macos/reveal-in-finder))
 
 (defun ns-raise-emacs ()
   "Raise Emacs."
@@ -869,33 +801,31 @@
 (add-hook 'org-mode-hook 'my/org-mode)
 
 (define-key org-mode-map (kbd "M-j")
-  'org-goto)
+	    'org-goto)
 
-(leader! 'org-mode-map "SPC" '("find heading" . org-goto))
-;; (evil-define-key 'normal 'org-mode-map (kbd "<leader> SPC") '("find heading" . org-goto))
+(evil-define-key 'normal org-mode-map (kbd "<leader> SPC") '("find heading" . org-goto))
 
-(general-define-key
- :keymaps 'org-agenda-mode-map
- :states 'motion
- "j" 'org-agenda-next-item
- "k" 'org-agenda-previous-item
- )
+;; (general-define-key
+;;  :keymaps 'org-agenda-mode-map
+;;  :states 'motion
+;;  "j" 'org-agenda-next-item
+;;  "k" 'org-agenda-previous-item
+;;  )
 
-(general-define-key
- :keymaps 'org-mode-map
- :states 'motion
- "RET" 'org-open-at-point
- )
-
-(local-leader! :keymaps 'org-mode-map
-  "a" '("archive" . org-archive-subtree-default)
-  "l" '("link" . org-cliplink)
-  "r" '("refile" . +org/refile-to-file))
+(evil-define-key 'motion org-agenda-mode-map
+  "j" 'org-agenda-next-item
+  "k" 'org-agenda-previous-item)
 
 
-(leader!
-  "a a" 'my/agenda
-  "c" 'org-capture)
+;; (general-define-key
+;;  :keymaps 'org-mode-map
+;;  :states 'motion
+;;  "RET" 'org-open-at-point
+;;  )
+
+(evil-define-key 'normal 'global
+  (kbd "<leader> a a") '("agenda" . my/agenda)
+  (kbd "<leader> c") '("capture" . org-capture))
 
 ;; Detecting Agenda Files
 ;; Got this from [[https://wohanley.com/posts/org-setup/][this post]].
@@ -1046,9 +976,9 @@
   ("k" org-roam-dailies-goto-previous-note "previous" :color red)
   ("q" nil "quit"))
 
-(leader! "n" '("notes" . hydra-notes/body))
-(leader! "d" 'hydra-dailies/body)
-(tyrant!
+(evil-define-key 'normal 'global
+  (kbd "<leader> n") '("notes" . hydra-notes/body)
+  (kbd "<leader> d") '("daily" . hydra-dailies/body)
   "M-n" 'org-roam-node-find
   "M-N" 'my/org-find-project)
 
@@ -1068,10 +998,6 @@
 (setq org-image-actual-width nil)
 (use-package org-download)
 (use-package org-cliplink)
-
-(use-package eldoc-box
-  :general
-  (general-nmap :keymaps 'eglot-mode-map "K" 'eldoc-box-help-at-point))
 
 (use-package lsp-mode
   :commands lsp
@@ -1130,8 +1056,11 @@
 
 
 ;; (evil-define-minor-mode-key 'normal lsp-mode (kbd "SPC l") lsp-command-map)
-(general-def 'normal lsp-mode :definer 'minor-mode
-  "M-l" 'hydra-lsp/body)
+;; (general-def 'normal lsp-mode :definer 'minor-mode
+;;   "M-l" 'hydra-lsp/body)
+
+(evil-define-minor-mode-key 'normal 'lsp-mode-map
+  (kbd "M-l") 'hydra-lsp/body)
 
 (use-package treesit-auto
   :config
@@ -1170,14 +1099,14 @@
   :config
   (setq flycheck-emacs-lisp-load-path 'inherit))
 
-(use-package flycheck-aspell
-  :config
-  (add-to-list 'flycheck-checkers 'markdown-aspell-dynamic)
-  (add-to-list 'flycheck-checkers 'texinfo-aspell-dynamic)
-  (flycheck-aspell-define-checker "org"
-				  "Org" ("--add-filter" "url")
-				  (org-mode))
-  (add-to-list 'flycheck-checkers 'org-aspell-dynamic))
+;; (use-package flycheck-aspell
+;;   :config
+;;   (add-to-list 'flycheck-checkers 'markdown-aspell-dynamic)
+;;   (add-to-list 'flycheck-checkers 'texinfo-aspell-dynamic)
+;;   (flycheck-aspell-define-checker "org"
+;; 				  "Org" ("--add-filter" "url")
+;; 				  (org-mode))
+;;   (add-to-list 'flycheck-checkers 'org-aspell-dynamic))
 
 ;; Keys.
 
@@ -1189,10 +1118,6 @@
   ("a" lsp-execute-code-action "action" :color blue)
   ("o" lsp-organize-imports "orgnize import" :color blue)
   ("q" nil "quit"))
-
-(tyrant!
-  :states '(normal)
-  ";" 'hydra-check/body)
 
 (evil-define-key 'normal 'global (kbd ";") 'hydra-check/body)
 
@@ -1214,7 +1139,7 @@
     ("rb" . "ruby"))
   "Alist of interpretors and their paths."
   :type '(alist :key-type (string :tag "Extension")
-           :value-type (string :tag "Interpreter"))
+		:value-type (string :tag "Interpreter"))
   :group 'shebang)
 
 (defun guess-shebang-command ()
@@ -1230,7 +1155,7 @@
   (insert (format "#!%s %s" shebang-env-path (guess-shebang-command)))
   (newline))
 
-(leader! "ib" '(insert-shebang :which-key "insert shebang"))
+(evil-define-key 'normal prog-mode-map (kbd "SPC i b") '("insert shebang" . insert-shebang))
 
 (defgroup run nil
   "Run."
@@ -1423,5 +1348,18 @@ Return the command from the run-ext-command-map otherwise"
   ((chatgpt-shell-openai-key
     (lambda ()
       (auth-source-pick-first-password :host "api.openai.com")))))
+
+(with-eval-after-load 'chatgpt-shell
+  (evil-define-key 'visual 'global (kbd "M-.") 'chatgpt-shell-proofread-region)
+  (evil-define-key 'visual 'global (kbd "M-/") 'chatgpt-shell-explain-code)
+  (evil-define-key 'visual 'global (kbd "M-RET") 'chatgpt-shell-send-region))
+
+;; (leader!
+;;   "a" '(nil :which-key "ai")
+;;   "ar" '(chatgpt-shell-proofread-region :which-key "proofread")
+;;   "ap" '(chatgpt-shell-prompt :which-key "prompt")
+;;   "ae" '(chatgpt-shell-explain-code :which-key "explain")
+;;   "a RET" '(chatgpt-shell-send-region :which-key "send")
+;;   "bk" '(kill-this-buffer :which-key "kill buffer"))
 
 (use-package vterm)
