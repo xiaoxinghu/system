@@ -66,7 +66,7 @@
 
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
 (add-to-list 'default-frame-alist '(ns-appearance . dark))
-(add-to-list 'default-frame-alist '(alpha-background . 70))
+(add-to-list 'default-frame-alist '(alpha-background . 50))
 
 (scroll-bar-mode -1)
 ;; (menu-bar-mode -1)

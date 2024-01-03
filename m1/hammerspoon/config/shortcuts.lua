@@ -2,7 +2,7 @@
 -- spoon.AClock:init()
 
 hs.hotkey.bind({ "cmd", "ctrl", "alt", "shift" }, "t", function()
-	hs.application.launchOrFocus("iTerm")
+	hs.application.launchOrFocus("Warp")
 end)
 
 hs.hotkey.bind({ "cmd", "ctrl", "alt", "shift" }, "e", function()

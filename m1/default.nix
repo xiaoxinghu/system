@@ -6,6 +6,7 @@ in {
 
   services.nix-daemon.enable = true;
   nix.package = pkgs.nixFlakes;
+  nixpkgs.config.allowUnfree = true;
 
   fonts = {
     fontDir.enable = true;
