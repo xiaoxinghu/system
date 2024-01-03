@@ -62,8 +62,8 @@
       cmp-cmdline
       cmp-nvim-lsp
       cmp-nvim-lua
-      luasnip
-      cmp_luasnip
+      # luasnip
+      # cmp_luasnip
 
       editorconfig-nvim
     ];
